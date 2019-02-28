@@ -1,0 +1,87 @@
+.role-switcher {
+    padding-top: 10px;
+}
+
+.switcher-title {
+    color: #767089;
+    text-transform: uppercase;
+    font-size: 12px;
+    padding-right: 5px;
+    padding-left: 5px;
+    padding-top: 2px;
+    vertical-align: middle;
+    font-weight: normal;
+
+    &.active {
+        color: #fff;
+
+    }
+}
+
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 46px;
+    height: 18px;
+    border: 1px #fff solid;
+    -webkit-border-radius: 42px;
+    -khtml-border-radius: 42px;
+    -moz-border-radius: 42px;
+    border-radius: 42px;
+
+    input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+
+        &:checked + .slider {
+            background-color: transparent;
+
+            &:before {
+                -webkit-transform: translateX(26px);
+                -ms-transform: translateX(26px);
+                transform: translateX(26px);
+            }
+        }
+
+        &:focus + .slider {
+            box-shadow: 0 0 1px #2196F3;
+        }
+    }
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: transparent;
+    -webkit-transition: .4s;
+    transition: .4s;
+
+    &:before {
+        position: absolute;
+        content: "";
+        height: 14px;
+        width: 14px;
+        left: 2px;
+        bottom: 1px;
+        background-color: white;
+        -webkit-transition: .4s;
+        transition: .4s;
+    }
+
+    &:hover:before {
+        background-color: #FF749C;
+    }
+
+    &.round {
+        border-radius: 34px;
+
+        &:before {
+            border-radius: 50%;
+        }
+    }
+}

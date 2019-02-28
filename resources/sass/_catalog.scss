@@ -1,0 +1,226 @@
+.add__inner h3 {
+    font-size: 18px;
+    margin: 45px 0 15px;
+    color: #454559;
+    font-weight: normal;
+    position: relative;
+}
+
+.shop__social-selector,
+.shop__category-selector {
+    background: #fff;
+    border-radius: 4px;
+    height: 48px;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    float: left;
+    color: hsl(237, 6%, 49%);
+    font-size: 14px;
+    position: relative;
+    transition: 0.2s linear;
+    border: transparent 1px solid;
+    box-sizing: border-box;
+    align-items: center;
+    border: 1px solid #CCCCCC;
+    padding: 20px;
+    margin: 3px;
+    cursor: pointer;
+}
+
+.shop__social-selector img,
+.shop__category-selector img {
+    max-height: 25px;
+}
+
+.service__category-selector:hover,
+.service__category-selector:active,
+.shop__social-selector:hover,
+.shop__category-selector:hover,
+.shop__social-selector.active,
+.shop__category-selector.active {
+    color: #454559;
+    border-color: #3A53D6;
+    box-shadow: 0px 4px 16px rgba(0, 0, 0, 0.08);
+    z-index: 100;
+}
+
+.service__category-selector {
+    background: #fff;
+    border-radius: 4px;
+    color: hsl(237, 6%, 49%);
+    font-size: 14px;
+    transition: 0.2s linear;
+    border: transparent 1px solid;
+    border: 1px solid #9999991f;
+    padding: 15px;
+}
+
+/*
+
+.shop__social-selector:first-child{
+	border-color: #3A53D6;
+}
+*/
+
+#active {
+    border-color: #3A53D6;
+}
+
+.serviceForm {
+    border: 1px solid #CCCCCC;
+    padding: 30px;
+}
+
+.serviceForm h4 {
+    font-weight: 500;
+    line-height: 30px;
+    font-size: 22px;
+    color: #454559;
+}
+
+.details {
+    visibility: hidden;
+    position: absolute;
+    background: #d0e1f6;
+    top: 0;
+    left: 15px;
+    padding: 30px;
+    color: #454559;
+    height: 98%;
+    width: 95%;
+    z-index: 99999999;
+    opacity: 0;
+    transition: opacity 0.3s;
+}
+
+.details p {
+    line-height: 1.9;
+    font-size: 1.2em;
+}
+
+.serviceForm > .text-right:hover ~ .details {
+    visibility: visible;
+    opacity: 1;
+}
+
+.serviceForm .details:hover {
+    visibility: visible;
+    opacity: 1;
+}
+
+.bold-price {
+    font-weight: 500;
+    line-height: 38px;
+    font-size: 25px;
+    color: #454559;
+}
+
+.small {
+    font-size: 18px;
+    margin-top: -10px;
+    display: block;
+}
+
+.add-cart i {
+    font-size: 15px;
+}
+
+.sendorder {
+    height: 50px;
+    /*width: 200px;*/
+    padding-left: 30px;
+    padding-right: 30px;
+    background-color: #7acb51 !important;
+    border-radius: 5px;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: inset 0px 1px 0px rgba(255, 255, 255, 0.05);
+    user-select: none;
+    box-sizing: border-box;
+    /* font-family: Roboto; */
+    border: none;
+    font-size: 24px;
+}
+
+.add-cart {
+    height: 50px;
+    background-color: #2196f3;
+    border-radius: 5px;
+    color: #fff;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: inset 0px 1px 0px rgba(255, 255, 255, 0.05);
+    user-select: none;
+    box-sizing: border-box;
+    border: none;
+    font-size: 14px;
+    margin: 0 auto;
+}
+
+.shop__social-selector img,
+.shop__category-selector img {
+    margin-right: 8px;
+    max-width: 16px;
+    max-height: 16px;
+}
+
+@media (min-width: 1280px) {
+    .add__inner h3::before {
+        display: block;
+        content: "";
+        width: 7px;
+        height: 7px;
+        position: absolute;
+        background: #465EDB;
+        border-radius: 50%;
+        left: -18px;
+        top: 11px;
+        z-index: 1;
+    }
+}
+
+.modalka {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, .7);
+    z-index: 99999;
+    display: none;
+}
+
+.modalka.active {
+    display: block;
+}
+
+.modal-content {
+    width: 350px;
+    margin: 10% auto;
+    padding: 15px;
+    text-align: center;
+    border-radius: 3px;
+    background: #fff;
+    box-shadow: 0 0 10px #000;
+    position: relative;
+}
+
+.closebutton {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.closebutton:hover {
+    font-weight: bold;
+}

@@ -1,0 +1,179 @@
+// Fonts
+@import url('https://fonts.googleapis.com/css?family=Nunito');
+// Variables
+@import 'variables';
+// Bootstrap
+@import '~bootstrap/scss/bootstrap';
+// Catalog
+@import 'catalog';
+// Swither
+@import 'switcher';
+// Scroll
+@import '~malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.css';
+@import '~toastr/toastr';
+
+.sidebar {
+    width: 290px;
+    height: 100%;
+    position: fixed;
+    z-index: 50;
+    padding-left: 10px;
+    padding-top: 15px;
+    background-color: #362E4C;
+    background-image: linear-gradient(to top, #362E4C 0%, #5A5C92 100%);
+    background-image: -o-linear-gradient(to top, #362E4C 0%, #5A5C92 100%);
+    background-image: -moz-linear-gradient(to top, #362E4C 0%, #5A5C92 100%);
+    background-image: -webkit-linear-gradient(to top, #362E4C 0%, #5A5C92 100%);
+    background-image: -ms-linear-gradient(to top, #362E4C 0%, #5A5C92 100%);
+    background-image: -webkit-gradient(linear, left top, left bottom, color-stop(0, #362E4C), color-stop(1, #5A5C92));
+    -webkit-transition: .4s;
+    transition: .4s;
+
+    .bordered {
+        border-bottom: 1px #514B6A solid;
+    }
+
+    .logo {
+        padding-bottom: 10px;
+        padding-left: 8px;
+    }
+
+    .title {
+        color: #fff;
+        text-transform: uppercase;
+        padding-top: 15px;
+        padding-bottom: 5px;
+    }
+
+    .info {
+        color: #897dc2;
+        font-size: 16px;
+        padding-top: 15px;
+    }
+
+    .list-group-item {
+        background-color: transparent;
+        border: none;
+        padding: 8px;
+
+        i {
+            color: #897DC2;
+            font-size: 1.3em;
+            padding-right: 10px;
+        }
+
+        a {
+            color: #fff;
+            font-size: 16px;
+
+            &:hover {
+                color: #897DC2;
+                text-decoration: none;
+            }
+
+            &:active {
+                color: #F5C449;
+            }
+        }
+
+    }
+}
+
+.side-right {
+    padding-top: 15px;
+    margin-left: 290px;
+    height: 100%;
+    background-color: #F9F9F9;
+}
+
+.navbar-laravel {
+    background-color: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.04);
+}
+
+.btn-lilac {
+    color: #fff;
+    text-align: center;
+    background-color: #5960AC;
+    border: 1px #5960AC solid;
+    -webkit-border-radius: 4px;
+    -khtml-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+    font-size: 16px;
+    padding: 9px 15px;
+
+    &:hover {
+        color: #5960AC;
+        background-color: transparent;
+        border-color: #5960AC;
+    }
+}
+
+.btn-gray {
+    color: #fff;
+    text-align: center;
+    background-color: #514B6A;
+    border: 1px #514B6A solid;
+    -webkit-border-radius: 4px;
+    -khtml-border-radius: 4px;
+    -moz-border-radius: 4px;
+    border-radius: 4px;
+    font-size: 16px;
+    padding: 9px 15px;
+
+    &:hover {
+        color: #514B6A;
+        background-color: transparent;
+        border-color: #514B6A;
+    }
+}
+
+.yellow-icons {
+    color: #ffc200;
+    font-size: 20px;
+}
+
+.pay li {
+    padding: 15px;
+}
+
+label {
+    font-weight: 600;
+}
+
+.menu-btn {
+    /*display: none;*/
+    padding-top: 7px;
+    color: #5960AC;
+    font-size: 20px;
+}
+
+.close-menu {
+    font-size: 25px;
+    color: #fff;
+    float: right;
+    margin-right: 20px;
+}
+
+.btn-odnoklassniki {
+    color: #fff;
+    background-color: #eb722e;
+    border-color: #eb722e;
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        margin-left: -290px;
+    }
+
+    .menu-show-up {
+        margin-left: 0;
+    }
+    .side-right {
+        margin-left: 0;
+    }
+    /*.menu-btn {
+        display: block;
+    }*/
+}
