@@ -32,11 +32,5 @@ class SmmPro
     {
         return $date->format('d-m-Y');
         //TODO: localize date
-
-        /* $course->_updated_at = [
-             'original' => $course->updated_at,
-             'formatted' => $course->updated_at->format('F Y'),
-             'localized' => \Carbon\Carbon::parse($course->updated_at)->formatLocalized('%e %B %Y')
-         ];*/
     }
 }

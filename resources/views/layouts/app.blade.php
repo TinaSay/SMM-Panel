@@ -20,8 +20,7 @@
     <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css">
     {{----editor----}}
     <link href="http://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.11/summernote.css" rel="stylesheet">
-
-
+    @stack('functions')
 </head>
 <body>
 <div id="app">
@@ -31,8 +30,11 @@
             <aside class="sidebar" id="side-menu">
 
                 <div class="logo bordered">
-                    <img src="{{ asset('images/epic-logo.png') }}" width="133px" height="29px" alt="">
-                    <i class="fas fa-times close-menu d-lg-none"></i>
+                    <a href="/">
+                        <img src="{{ asset('images/picstar.png') }}" alt="picstar">
+                        <span class="logo-text">picstar</span>
+                        <i class="fas fa-times close-menu d-lg-none"></i>
+                    </a>
                 </div>
 
                 <div class="role-switcher bordered">
@@ -51,8 +53,8 @@
                 @if(Auth::user()->role_id==1)
                     <admin-sidebar></admin-sidebar>
                 @endif
-                <user-sidebar :user="{{ Auth::user() }}"
-                              :balance="{{ \App\User::getUserBalance()}}"></user-sidebar>
+                {{--<user-sidebar :user="{{ Auth::user() }}"
+                              :balance="{{ \App\User::getUserBalance()}}"></user-sidebar>--}}
 
             </aside>
             {{--dashboard content section--}}
@@ -61,8 +63,8 @@
                     <div class="container">
                         <div class="row">
                             <div class="col-md-12">
-                                <top-links :user="{{ Auth::user() }}"
-                                           :balance="{{ \App\User::getUserBalance() }}"></top-links>
+                                {{--<top-links :user="{{ Auth::user() }}"
+                                           :balance="{{ \App\User::getUserBalance() }}"></top-links>--}}
                             </div>
                         </div>
                     </div>

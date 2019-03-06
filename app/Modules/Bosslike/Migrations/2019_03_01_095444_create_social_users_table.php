@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateOkTable extends Migration
+class CreateSocialUsersTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,12 +13,14 @@ class CreateOkTable extends Migration
      */
     public function up()
     {
-        Schema::create('bosslike_ok', function (Blueprint $table) {
+        Schema::create('social_users', function (Blueprint $table) {
             $table->increments('id');
+            $table->unsignedInteger('social_id');
             $table->unsignedInteger('user_id');
             $table->string('access_token');
             $table->timestamps();
 
+            $table->foreign('social_id')->references('id')->on('socials');
             $table->foreign('user_id')->references('id')->on('users');
         });
     }
@@ -30,6 +32,6 @@ class CreateOkTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('bosslike_ok');
+        Schema::dropIfExists('social_users');
     }
 }

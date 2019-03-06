@@ -6,7 +6,6 @@ use App\Modules\SmmPro\Requests\CategorySaveRequest;
 use App\Modules\SmmPro\Models\Category;
 use App\Http\Controllers\Controller;
 use App\Modules\SmmPro\Models\Service;
-use App\Modules\SmmPro\Requests\CategoryUpdateRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 

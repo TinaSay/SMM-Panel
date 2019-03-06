@@ -2,11 +2,11 @@
     <ul class="list-group advertiser">
         <li class="list-group-item">
             <i class="fas fa-plus"></i>
-            <a href="/">Добавить задание</a>
+            <a href="/task/new">Добавить задание</a>
         </li>
         <li class="list-group-item">
             <i class="fas fa-tasks"></i>
-            <a href="/">Мои задания</a>
+            <a href="/tasks/my">Мои задания</a>
         </li>
     </ul>
 </template>

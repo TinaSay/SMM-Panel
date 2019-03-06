@@ -2,7 +2,8 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Modules\Bosslike\Models\SocialUser;
+use App\Modules\Bosslike\Requests\SocialUserRequest;
 use Laravel\Socialite\Facades\Socialite;
 
 /**
@@ -20,13 +21,21 @@ class OkController extends Controller
     }
 
     /**
-     *
+     * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
     public function handleProviderCallback()
     {
-        $user = Socialite::driver('odnoklassniki')->user();
-        return response()->json([
-            'user' => $user,
-        ]);
+        $okUser = Socialite::driver('odnoklassniki')->user();
+
+        $localUser = new SocialUser();
+        $localUser->social_id = 1;
+        $localUser->user_id = \Auth::id();
+        $localUser->access_token = $okUser->token;
+        $localUser->save();
+
+        return view('bosslike::profile', [
+            'localUser' => $localUser
+        ])->with('success', 'Аккаунт одноклассников привязан!');
     }
+
 }

@@ -2,6 +2,8 @@
 
 namespace App;
 
+use App\Modules\Bosslike\Models\SocialUser;
+use App\Modules\Bosslike\Models\Task;
 use App\Modules\SmmPro\Models\Order;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -35,6 +37,9 @@ use GuzzleHttp;
  * @method static \Illuminate\Database\Eloquent\Builder|\App\User whereRememberToken($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\User whereRoleId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\User whereUpdatedAt($value)
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Modules\SmmPro\Models\Order[] $orders
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Modules\Bosslike\Models\SocialUser[] $socialUsers
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Modules\Bosslike\Models\Task[] $tasks
  */
 class User extends Authenticatable
 {
@@ -69,6 +74,22 @@ class User extends Authenticatable
     public function orders()
     {
         return $this->hasMany(Order::class);
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function socialUsers()
+    {
+        return $this->hasMany(SocialUser::class);
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function tasks()
+    {
+        return $this->hasMany(Task::class);
     }
 
     /**

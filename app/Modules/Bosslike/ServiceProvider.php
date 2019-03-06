@@ -21,6 +21,8 @@ class ServiceProvider extends BaseProvider
         $this->loadRoutesFrom(__DIR__ . '/Routes/web.php');
 
         $this->loadViewsFrom(__DIR__ . '/Views', 'bosslike');
+
+        $this->loadMigrationsFrom(__DIR__ . '/Migrations');
     }
 
     /**

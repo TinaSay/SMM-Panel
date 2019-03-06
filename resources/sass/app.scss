@@ -12,13 +12,16 @@
 @import '~malihu-custom-scrollbar-plugin/jquery.mCustomScrollbar.css';
 @import '~toastr/toastr';
 
+a:hover {
+    text-decoration: none;
+}
+
 .sidebar {
     width: 290px;
     height: 100%;
     position: fixed;
     z-index: 50;
     padding-left: 10px;
-    padding-top: 15px;
     background-color: #362E4C;
     background-image: linear-gradient(to top, #362E4C 0%, #5A5C92 100%);
     background-image: -o-linear-gradient(to top, #362E4C 0%, #5A5C92 100%);
@@ -34,8 +37,19 @@
     }
 
     .logo {
-        padding-bottom: 10px;
         padding-left: 8px;
+
+        img {
+            width: 40px;
+        }
+    }
+
+    .logo-text {
+        color: #fff;
+        font-size: 29px;
+        font-variant: small-caps;
+        font-family: "Helvetica Narrow", "Arial Narrow", Tahoma, Arial, Helvetica, sans-serif;
+        vertical-align: middle;
     }
 
     .title {
@@ -160,6 +174,27 @@ label {
     color: #fff;
     background-color: #eb722e;
     border-color: #eb722e;
+}
+
+.btn-muted {
+    color: #999;
+    background: #e7e7e7;
+
+    i {
+        padding-right: 5px;
+    }
+}
+
+.user-name {
+    color: #555;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.delete-social {
+    font-size: 12px;
+    border-radius: 3px;
+    border: 1px solid #999;
 }
 
 @media (max-width: 768px) {

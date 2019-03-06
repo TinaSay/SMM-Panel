@@ -47260,13 +47260,13 @@ var staticRenderFns = [
       _c("li", { staticClass: "list-group-item" }, [
         _c("i", { staticClass: "fas fa-plus" }),
         _vm._v(" "),
-        _c("a", { attrs: { href: "/" } }, [_vm._v("Добавить задание")])
+        _c("a", { attrs: { href: "/task/new" } }, [_vm._v("Добавить задание")])
       ]),
       _vm._v(" "),
       _c("li", { staticClass: "list-group-item" }, [
         _c("i", { staticClass: "fas fa-tasks" }),
         _vm._v(" "),
-        _c("a", { attrs: { href: "/" } }, [_vm._v("Мои задания")])
+        _c("a", { attrs: { href: "/tasks/my" } }, [_vm._v("Мои задания")])
       ])
     ])
   }

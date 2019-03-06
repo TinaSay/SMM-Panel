@@ -3,6 +3,8 @@
 namespace App\Modules\Bosslike\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Modules\Bosslike\Models\SocialUser;
+use Laravel\Socialite\Facades\Socialite;
 
 /**
  * Class ProfileController
@@ -15,6 +17,12 @@ class ProfileController extends Controller
      */
     public function index()
     {
-        return view('bosslike::profile');
+        $localUser = SocialUser::where('social_id', '=', 1)
+            ->where('user_id', '=', \Auth::id())
+            ->first();
+
+        return view('bosslike::profile', [
+            'localUser' => $localUser
+        ]);
     }
 }
