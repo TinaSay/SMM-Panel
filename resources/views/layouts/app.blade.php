@@ -47,14 +47,12 @@
                     <label class="switcher-title">Блогер</label>
                 </div>
 
-                <advertiser-sidebar></advertiser-sidebar>
-                <blogger-sidebar></blogger-sidebar>
+                @include('layouts.sidebar-bosslike')
 
                 @if(Auth::user()->role_id==1)
-                    <admin-sidebar></admin-sidebar>
+                    @include('layouts.sidebar-admin')
                 @endif
-                {{--<user-sidebar :user="{{ Auth::user() }}"
-                              :balance="{{ \App\User::getUserBalance()}}"></user-sidebar>--}}
+                @include('layouts.sidebar-user')
 
             </aside>
             {{--dashboard content section--}}
@@ -63,8 +61,7 @@
                     <div class="container">
                         <div class="row">
                             <div class="col-md-12">
-                                {{--<top-links :user="{{ Auth::user() }}"
-                                           :balance="{{ \App\User::getUserBalance() }}"></top-links>--}}
+                                @include('layouts.top-bar')
                             </div>
                         </div>
                     </div>

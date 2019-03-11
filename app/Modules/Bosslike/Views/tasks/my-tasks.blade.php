@@ -14,14 +14,13 @@
         @foreach($tasks as $task)
             <div class="card mb-3">
                 <div class="card-body">
-                    <input type="hidden" value="{{ $task->id }}" class="task_id">
                     <a href="{{ $task->link }}" target="_blank">
                         <h4><strong>{{ Bosslike::setServiceName($task->service->name) }}</strong> {{ $task->link }}
                         </h4>
                     </a>
                     <div class="card-details">
-                        <span class="totalPoints" data-id="{{$task->id}}"></span> баллов (<span class="point"
-                                                                                                data-id="{{$task->id}}"></span>
+                        <span class="totalPoints-{{$task->id}}"></span> баллов (<span class="point{{$task->id}}"
+                                                                                      data-id="{{$task->id}}"></span>
                         за задание)
                         {{$task->created_at}}
                     </div>
@@ -44,7 +43,9 @@
                     {{--End button for delete--}}
 
                     {{--Form for editing--}}
-                    <form class="edit-form-{{$task->id}} d-none" onsubmit="updateData({{$task->id}})">
+                    <form class="edit-form-{{$task->id}} d-none">
+                        <input type="hidden" value="{{ $task->id }}" class="task_id">
+
                         <div class="form-group">
                             <label for="">Ссылка</label>
                             <input type="text" disabled="disabled" value="{{ $task->link }}" class="form-control"
@@ -55,7 +56,7 @@
                             <label for="points">Оплата исполнителю</label>
 
                             <input id="points" type="number" name="points" value="{{ $task->points }}"
-                                   class="points{{$task->id}} form-control{{ $errors->has('points') ? ' is-invalid' : '' }}"
+                                   class="points form-control{{ $errors->has('points') ? ' is-invalid' : '' }}"
                                    placeholder="кол.баллов" onfocus="this.placeholder = ''"
                                    onblur="this.placeholder = 'кол.баллов'">
 
@@ -70,7 +71,7 @@
                             <label for="amount">Количество выполнений</label>
 
                             <input id="amount" type="number" name="amount" value="{{ $task->amount }}"
-                                   class="amount{{$task->id}} form-control{{ $errors->has('amount') ? ' is-invalid' : '' }}">
+                                   class="amount form-control{{ $errors->has('amount') ? ' is-invalid' : '' }}">
 
                             @if ($errors->has('amount'))
                                 <span class="invalid-feedback" role="alert">
@@ -79,7 +80,7 @@
                             @endif
                         </div>
                         <div class="form-group">
-                            <button type="submit" class="btn btn-primary btn-lilac">
+                            <button type="submit" class="btn btn-primary btn-lilac update">
                                 Сохранить
                             </button>
                             <a href="{{ route('tasks.my') }}" class="btn btn-primary btn-gray">
@@ -99,63 +100,37 @@
         function openEditForm(id) {
             $('.edit-form-' + id).toggleClass('d-none');
         }
-
-        function updateData(id) {
-
-            $.ajax({
-                url: '/task/update/' + id,
-                method: 'PUT',
-                data: {
-                    _token: '{!! csrf_token() !!}',
-                    'points': $('.points' + id).val(),
-                    'amount': $('amount' + id).val()
-                },
-                dataType: 'JSON',
-                success: function (response) {
-
-                    if (response.status == 1) {
-                        window.toastr.success(response.message);
-                    } else {
-                        window.toastr.error(response.message);
-                    }
-                },
-                error: function () {
-                    window.toastr.error('Ошибка');
-
-                }
-            });
-            e.preventDefault();
-
-        }
     </script>
 @endpush
 @push('scripts')
     <script>
         $(document).ready(function () {
 
-            var _form = $('.edit-form');
-
-
             $('.edit').on('click', function (e) {
                 e.preventDefault();
-                _form.toggleClass('d-none');
             });
 
-            _form.submit(function (e) {
+            $('.update').on('click', function (e) {
+                e.preventDefault();
+
+                var _form = $(this).closest('form');
+                var _task = _form.find('.task_id').val();
+                var _points = _form.find('.points').val();
+                var _amount = _form.find('.amount').val();
 
                 $.ajax({
-                    url: '/task/update/' + $('.task_id').val(),
+                    url: '/task/update/' + _task,
                     method: 'PUT',
                     data: {
                         _token: '{!! csrf_token() !!}',
-                        'points': $('input[name=points]').val(),
-                        'amount': $('input[name=amount]').val()
+                        'points': _points,
+                        'amount': _amount,
                     },
                     dataType: 'JSON',
                     success: function (response) {
                         _form.toggleClass('d-none');
-                        $('.totalPoints').text($('input[name=points]').val() * $('input[name=amount]').val());
-                        point($('input[name=points]').val());
+                        total(_points, _amount, _task);
+                        point(_points);
 
                         if (response.status == 1) {
                             window.toastr.success(response.message);
@@ -165,22 +140,17 @@
                     },
                     error: function () {
                         window.toastr.error('Ошибка');
-
                     }
                 });
                 e.preventDefault();
-
             });
 
-            function total(points, amount) {
+            function total(points, amount, id) {
                 var total = points * amount;
-                $('.totalPoints').text(total);
-            }
+                $('.totalPoints-' + id).text(total);
+                $('.point' + id).text(points);
 
-            function point(point) {
-                $('.point').text(point);
             }
-
         });
     </script>
 @endpush

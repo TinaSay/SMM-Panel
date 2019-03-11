@@ -44,11 +44,6 @@ Vue.component('moon-loader', require('vue-spinner/src/MoonLoader.vue').default);
 Vue.component('table-vue', require('./components/TableVue/TableVue.vue').default);
 Vue.component('catalog', require('./components/Catalog.vue').default);
 Vue.component('example-component', require('./components/ExampleComponent.vue').default);
-Vue.component('admin-sidebar', require('./components/Template/admin-sidebar.vue').default);
-Vue.component('user-sidebar', require('./components/Template/user-sidebar.vue').default);
-Vue.component('advertiser-sidebar', require('./components/Template/advertiser-sidebar.vue').default);
-Vue.component('blogger-sidebar', require('./components/Template/blogger-sidebar.vue').default);
-Vue.component('top-links', require('./components/Template/top-links.vue').default);
 Vue.component('cart-dropdown', require('./components/Cart/cart-dropdown.vue').default);
 Vue.component('cart-button-add', require('./components/Cart/cart-button-add.vue').default);
 

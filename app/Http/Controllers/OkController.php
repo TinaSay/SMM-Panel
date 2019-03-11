@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Modules\Bosslike\Models\SocialUser;
-use App\Modules\Bosslike\Requests\SocialUserRequest;
 use Laravel\Socialite\Facades\Socialite;
 
 /**
@@ -31,6 +30,8 @@ class OkController extends Controller
         $localUser->social_id = 1;
         $localUser->user_id = \Auth::id();
         $localUser->access_token = $okUser->token;
+        $localUser->nickname = $okUser->name;
+        $localUser->avatar = $okUser->avatar;
         $localUser->save();
 
         return view('bosslike::profile', [

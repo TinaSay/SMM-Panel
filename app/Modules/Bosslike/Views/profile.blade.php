@@ -14,10 +14,10 @@
                 @if($localUser)
 
                     <div class="user-data">
-                        <div class="user-avatar float-left mr-3">
-                            <img src="{{ Bosslike::getUserInfo()['avatar'] }}" alt="" class="img-thumbnail">
+                        <div class="user-avatar float-left col-sm-3">
+                            <img src="{{ $localUser->avatar }}" alt="" class="img-thumbnail">
                         </div>
-                        <div class="user-name">{{ Bosslike::getUserInfo()['name'] }}</div>
+                        <div class="user-name">{{ $localUser->nickname }}</div>
                         <div class="user-desc">
                             <form action="{{ route('ok-user.delete', $localUser->id)}}" method="POST">
                                 @method('DELETE')

@@ -4,7 +4,6 @@ namespace App\Modules\Bosslike\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Bosslike\Models\SocialUser;
-use Laravel\Socialite\Facades\Socialite;
 
 /**
  * Class ProfileController
