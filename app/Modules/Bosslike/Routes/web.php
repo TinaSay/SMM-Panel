@@ -18,6 +18,8 @@ Route::group([
         Route::post('task/store', 'NewTaskController@store')->name('task.store');
 
         Route::get('tasks/my', 'MyTasksController@index')->name('tasks.my');
+        Route::get('tasks/all', 'TasksController@index')->name('tasks.all');
+        Route::get('tasks/check/{id}', 'TasksController@check')->name('tasks.check');
         Route::put('task/update/{id}', 'MyTasksController@updateAjax');
         Route::delete('task/delete/{id}', 'MyTasksController@delete')->name('task.delete');
     });

@@ -33,9 +33,8 @@ class OkController extends Controller
         $localUser->access_token = $okUser->token;
         $localUser->save();
 
-        return view('bosslike::profile', [
-            'localUser' => $localUser
-        ])->with('success', 'Аккаунт одноклассников привязан!');
+        return view('bosslike::profile')
+            ->with(['success', 'Аккаунт одноклассников привязан!'])->withLocalUser($localUser);
     }
 
 }

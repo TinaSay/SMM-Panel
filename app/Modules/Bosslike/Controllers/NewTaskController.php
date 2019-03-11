@@ -4,9 +4,13 @@ namespace App\Modules\Bosslike\Controllers;
 
 use App\Modules\Bosslike\Models\Service;
 use App\Modules\Bosslike\Models\Social;
+use App\Modules\Bosslike\Models\SocialUser;
 use App\Modules\Bosslike\Models\Task;
 use App\Http\Controllers\Controller;
 use App\Modules\Bosslike\Requests\TaskSaveRequest;
+//use PHPUnit\Framework\Exception;
+Use Exception;
+use Illuminate\Support\Facades\Input;
 
 /**
  * Class NewTaskController
@@ -30,16 +34,27 @@ class NewTaskController extends Controller
      */
     public function store(TaskSaveRequest $request)
     {
-        $task = new Task();
-        $task->user_id = \Auth::id();
-        $task->service_id = $request->input('service_id');
-        $task->link = $request->input('link');
-        
-        $task->points = $request->input('points');
-        $task->amount = $request->input('amount');
-        $task->save();
 
-        return redirect('/tasks/my');
+        $data = $request->only('link', 'service_id', 'social');
+        $validator = $this->validatePost($data);
+        if($validator['status']) {
+            $task = new Task();
+            $task->user_id = \Auth::id();
+            $task->service_id = $request->input('service_id');
+            $task->link = $request->input('link');
+
+            $task->points = $request->input('points');
+            $task->amount = $request->input('amount');
+            $task->save();
+
+            toast()->success('Задание создано.', 'Успех');
+            return redirect('/tasks/my');
+        } else {
+            toast()->error($validator['message'], 'Неудача');
+//            return view('bosslike::tasks.create')->with(['socials' => Social::all()]);
+            return back()->with(['socials' => Social::all()])->withInput(Input::all());
+        }
+
     }
 
     /**
@@ -52,4 +67,101 @@ class NewTaskController extends Controller
         return response()->json($services);
     }
 
+    public function validatePost($data)
+    {
+        $service = Service::find($data['service_id']);
+        $social = Social::find($data['social']);
+        $socialUsers = SocialUser::where('user_id', \Auth::id())->where('social_id', $data['social']);
+        switch ($social->name) {
+            case 'Instagram':
+                $result = $this->validateInstagram($data, $service->name);
+                break;
+            case 'Facebook':
+                $result = $this->validateFacebook($data, $service->name, $socialUsers->access_token);
+                break;
+            default:
+                break;
+        }
+
+        return $result;
+    }
+
+    public function validateInstagram($data, $service)
+    {
+        $instagram = new \InstagramScraper\Instagram();
+        try {
+            switch ($service) {
+                case 'Subscribe':
+                    $username = str_replace('/', '',str_replace('https://www.instagram.com/', '', $data['link']));
+                    $media = $instagram->getAccount($username);
+                    break;
+                case 'Like':
+                case 'Comment':
+                    $media = $instagram->getMediaByUrl($data['link']);
+                    break;
+                default:
+                    break;
+            }
+        } catch (Exception $e) {
+            $media = $e->getCode();
+        }
+
+        if($media['id'] != 0) {
+            return ['status' => true];
+        } else {
+            return ['status' => false, 'message' => 'Неверная ссылка или не удалось получить данные из социальной сети или ссылка доступна только вам.'];
+        }
+    }
+
+    public function validateFacebook($data, $service, $token)
+    {
+        $config = \Config::get('services.facebook');
+
+        $fb = new \Facebook\Facebook([
+            'app_id' => $config['client_id'],
+            'app_secret' => $config['client_secret'],
+            'default_graph_version' => 'v3.2',
+        ]);
+
+        try {
+            switch ($service) {
+                case 'Subscribe':
+                    try {
+                        $response = $fb->get('/' . $data['link'], $token);
+                    } catch(\Facebook\Exceptions\FacebookResponseException $e) {
+                        echo 'Graph returned an error: ' . $e->getMessage();
+                        exit;
+                    } catch(\Facebook\Exceptions\FacebookSDKException $e) {
+                        echo 'Facebook SDK returned an error: ' . $e->getMessage();
+                        exit;
+                    }
+                    $page = json_decode($response->getBody());
+
+                    if(isset($page->name) && is_numeric($page->id)) {
+                        return ['status' => true];
+                    }
+                    break;
+                case 'Like':
+                case 'Comment':
+                    if((strpos($data['link'], 'photo') !== false) && strpos($data['link'], 'fbid') !== false) {
+
+                    } elseif (strpos($data['link'], 'videos') !== false) {
+
+                    } elseif (strpos($data['link'], 'posts') !== false) {
+
+                    }
+                    break;
+                default:
+                    break;
+            }
+        } catch (Exception $e) {
+            $media = $e->getCode();
+        }
+
+//        if($media['id'] != 0) {
+//            return ['status' => true];
+//        } else {
+            return ['status' => false, 'message' => 'Неверная ссылка или не удалось получить данные из социальной сети или ссылка доступна только вам.'];
+//        }
+    }
 }

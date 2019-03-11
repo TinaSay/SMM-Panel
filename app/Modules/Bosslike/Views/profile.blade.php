@@ -38,6 +38,36 @@
                         Привязать аккаунт Одноклассники</a>
                 @endif
             </div>
+
+            <div class="form-group">
+                <label>Instagram</label>
+                @if($localUser)
+
+                    <div class="user-data">
+                        <div class="user-avatar float-left mr-3">
+                            <img src="{{ Bosslike::getUserInfo()['avatar'] }}" alt="" class="img-thumbnail">
+                        </div>
+                        <div class="user-name">{{ Bosslike::getUserInfo()['name'] }}</div>
+                        <div class="user-desc">
+                            <form action="{{ route('ok-user.delete', $localUser->id)}}" method="POST">
+                                @method('DELETE')
+                                @csrf
+                                <button class="btn btn-default btn-sm delete-social"
+                                        onclick="return confirm('Отвязать?')">
+                                    <i class="fa fa-times"></i>
+                                    Отвязать аккаунт
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                @else
+                    <a href="{{ route('insta.login', ['provider' =>'instagram']) }}"
+                       class="btn btn-block btn-lg btn-instagram">
+                        <i class="fab fa-instagram"></i>
+                        Привязать аккаунт Instagram</a>
+                @endif
+            </div>
         </div>
     </div>
 
