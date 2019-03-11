@@ -70,6 +70,15 @@
                     <div class="container">
                         <div class="row">
                             <div class="col-md-12">
+                                {{--@if(Session::has('toasts'))--}}
+                                    {{--@foreach(Session::get('toasts') as $toast)--}}
+                                        {{--<div class="alert alert-{{ $toast['level'] }}">--}}
+                                            {{--<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>--}}
+
+                                            {{--{{ $toast['message'] }}--}}
+                                        {{--</div>--}}
+                                    {{--@endforeach--}}
+                                {{--@endif--}}
                                 <h2>@yield('title')</h2>
 
                                 @yield('content')
@@ -82,6 +91,7 @@
     @endauth
     @yield('authorize')
 </div>
+@include('toast::messages-jquery')
 <script src="{{ asset('js/app.js') }}"></script>
 <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
 {{--editor--}}

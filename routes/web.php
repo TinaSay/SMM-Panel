@@ -16,4 +16,5 @@ Route::get('/logout', 'Auth\LoginController@logout')->name('logout.get');
 Route::get('login/ok', 'OkController@redirectToProvider')->name('ok.login');
 Route::get('login/ok/callback', 'OkController@handleProviderCallback');
 
-
+Route::get('auth/{provider}', 'SocialAuthController@redirectToProvider')->name('insta.login');
+Route::get('auth/{provider}/callback', 'SocialAuthController@handleProviderCallback');

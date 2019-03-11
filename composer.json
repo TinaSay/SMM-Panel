@@ -10,7 +10,9 @@
     "require": {
         "php": "^7.1.3",
         "doctrine/dbal": "^2.9",
+        "facebook/graph-sdk": "^5.7",
         "fideloper/proxy": "^4.0",
+        "grimthorr/laravel-toast": "^1.1",
         "guzzlehttp/guzzle": "^6.3",
         "hybridauth/hybridauth": "~3.0",
         "jhaoda/socialite-odnoklassniki": "^3.0",
@@ -19,6 +21,7 @@
         "laravel/socialite": "^4.0",
         "laravel/tinker": "^1.0",
         "laravelcollective/html": "^5.7",
+        "raiym/instagram-php-scraper": "^0.8.28",
         "ramsey/laravel-oauth2-instagram": "^3.0",
         "socialiteproviders/facebook": "dev-master",
         "socialiteproviders/instagram": "^3.0",

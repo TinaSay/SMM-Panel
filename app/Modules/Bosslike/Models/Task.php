@@ -33,6 +33,9 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Task extends Model
 {
+
+    const INSTAGRAM_USERNAME = 'mari__krasnova';
+    const INSTAGRAM_PASSWORD = 'secretsecret1234';
     /**
      * @var array
      */
