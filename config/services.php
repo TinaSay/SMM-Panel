@@ -53,4 +53,16 @@ return [
         'client_public' => env('ODNOKLASSNIKI_PUBLIC'),
         'redirect' => env('ODNOKLASSNIKI_REDIRECT'),
     ],
+
+    'facebook' => [
+        'client_id' => env('FACEBOOK_KEY'),
+        'client_secret' => env('FACEBOOK_SECRET'),
+        'redirect' => env('FACEBOOK_REDIRECT_URI')
+    ],
+
+    'instagram' => [
+        'client_id' => env('INSTAGRAM_KEY'),
+        'client_secret' => env('INSTAGRAM_SECRET'),
+        'redirect' => env('INSTAGRAM_REDIRECT_URI')
+    ],
 ];

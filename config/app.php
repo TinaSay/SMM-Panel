@@ -169,6 +169,7 @@ return [
         \App\Modules\SmmPro\ServiceProvider::class,
         \App\Modules\Cart\ServiceProvider::class,
         \App\Modules\Bosslike\ServiceProvider::class,
+        \Grimthorr\LaravelToast\ServiceProvider::class,
 
         /*
          * Application Service Providers...
@@ -231,6 +232,7 @@ return [
         'Cart' => \App\Modules\Cart\Facades\CartFacade::class,
         'Bosslike' => \App\Modules\Bosslike\Facades\BosslikeFacade::class,
         'Socialite' => Laravel\Socialite\Facades\Socialite::class,
+        'Toast' => \Grimthorr\LaravelToast\Facade::class,
     ],
 
 ];

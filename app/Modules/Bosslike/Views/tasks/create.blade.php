@@ -20,7 +20,7 @@
                         id="social">
 
                         @foreach($socials as $social)
-                            <option value="{{ $social->id }}">
+                            <option {{ (old('social') == $social->id) ? 'selected' : '' }} value="{{ $social->id }}">
                                 {{ $social->name }}
                             </option>
                         @endforeach
@@ -102,12 +102,13 @@
 @push('scripts')
     <script>
         $(document).ready(function () {
+            {{--var _socialId = {!! old('service_id') !!};--}}
             loadCategories(1);
             $('#social').on('change', function () {
                 var _socialId = $(this).val();
                 loadCategories(_socialId);
             });
-
+            // ' + (old === v.id) ? 'selected' : '' + '
             function loadCategories($socialId) {
                 $.ajax({
                     url: '/task/new/services/' + $socialId,
