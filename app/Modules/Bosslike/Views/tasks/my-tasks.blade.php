@@ -25,9 +25,14 @@
                         за задание)
                         {{$task->created_at}}
                     </div>
-                    <a href="" class="btn btn-sm btn-muted edit" data-id="{{$task->id}}" onclick="openEditForm({{$task->id}})"><i
-                            class="fas fa-edit"></i>Редактировать</a>
 
+                    {{--Button for edit--}}
+                    <a href="" class="btn btn-sm btn-muted edit" data-id="{{$task->id}}"
+                       onclick="openEditForm({{$task->id}})"><i
+                            class="fas fa-edit"></i>Редактировать</a>
+                    {{--End button for edit--}}
+
+                    {{--Button for delete--}}
                     <form action="{{ route('task.delete',$task->id) }}" method="POST">
                         @method('DELETE')
                         @csrf
@@ -36,8 +41,10 @@
                             <i class="fa fa-trash">Удалить</i>
                         </button>
                     </form>
+                    {{--End button for delete--}}
 
-                    <form class="d-none edit-form" data-id="{{$task->id}}">
+                    {{--Form for editing--}}
+                    <form class="edit-form-{{$task->id}} d-none" onsubmit="updateData({{$task->id}})">
                         <div class="form-group">
                             <label for="">Ссылка</label>
                             <input type="text" disabled="disabled" value="{{ $task->link }}" class="form-control"
@@ -48,7 +55,7 @@
                             <label for="points">Оплата исполнителю</label>
 
                             <input id="points" type="number" name="points" value="{{ $task->points }}"
-                                   class="form-control{{ $errors->has('points') ? ' is-invalid' : '' }}"
+                                   class="points{{$task->id}} form-control{{ $errors->has('points') ? ' is-invalid' : '' }}"
                                    placeholder="кол.баллов" onfocus="this.placeholder = ''"
                                    onblur="this.placeholder = 'кол.баллов'">
 
@@ -63,7 +70,7 @@
                             <label for="amount">Количество выполнений</label>
 
                             <input id="amount" type="number" name="amount" value="{{ $task->amount }}"
-                                   class="form-control{{ $errors->has('amount') ? ' is-invalid' : '' }}">
+                                   class="amount{{$task->id}} form-control{{ $errors->has('amount') ? ' is-invalid' : '' }}">
 
                             @if ($errors->has('amount'))
                                 <span class="invalid-feedback" role="alert">
@@ -80,6 +87,7 @@
                             </a>
                         </div>
                     </form>
+                    {{--End editing form--}}
                 </div>
 
             </div>
@@ -89,7 +97,35 @@
 @push('functions')
     <script>
         function openEditForm(id) {
-            console.log($('.edit-form[data-id='+id+']'));
+            $('.edit-form-' + id).toggleClass('d-none');
+        }
+
+        function updateData(id) {
+
+            $.ajax({
+                url: '/task/update/' + id,
+                method: 'PUT',
+                data: {
+                    _token: '{!! csrf_token() !!}',
+                    'points': $('.points' + id).val(),
+                    'amount': $('amount' + id).val()
+                },
+                dataType: 'JSON',
+                success: function (response) {
+
+                    if (response.status == 1) {
+                        window.toastr.success(response.message);
+                    } else {
+                        window.toastr.error(response.message);
+                    }
+                },
+                error: function () {
+                    window.toastr.error('Ошибка');
+
+                }
+            });
+            e.preventDefault();
+
         }
     </script>
 @endpush
