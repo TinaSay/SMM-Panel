@@ -78,6 +78,7 @@
                     </div>
                 </section>
             </div>
+
         </main>
     @endauth
     @yield('authorize')
