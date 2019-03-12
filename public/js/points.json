@@ -1,0 +1,70 @@
+{
+    "ok": {
+        "likes": {
+            "slow": "1",
+            "middle": "2",
+            "fast": "3"
+        },
+        "followers": {
+            "slow": "5",
+            "middle": "6",
+            "fast": "9"
+        }
+    },
+    "vk": {
+        "likes": {
+            "slow": "1",
+            "middle": "2",
+            "fast": "3"
+        },
+        "followers": {
+            "slow": "5",
+            "middle": "6",
+            "fast": "9"
+        },
+        "comments": {
+            "slow": "2",
+            "middle": "3",
+            "fast": "4"
+        }
+    },
+    "instagram": {
+        "likes": {
+            "slow": "1",
+            "middle": "2",
+            "fast": "3"
+        },
+        "followers": {
+            "slow": "5",
+            "middle": "6",
+            "fast": "9"
+        },
+        "comments": {
+            "slow": "2",
+            "middle": "3",
+            "fast": "4"
+        }
+    },
+    "facebook": {
+        "likes": {
+            "slow": "1",
+            "middle": "2",
+            "fast": "3"
+        },
+        "shares": {
+            "slow": "5",
+            "middle": "6",
+            "fast": "9"
+        },
+        "friends": {
+            "slow": "2",
+            "middle": "3",
+            "fast": "4"
+        },
+        "comments": {
+            "slow": "2",
+            "middle": "3",
+            "fast": "4"
+        }
+    }
+}

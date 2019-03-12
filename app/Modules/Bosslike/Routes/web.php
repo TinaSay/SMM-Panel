@@ -12,8 +12,8 @@ Route::group([
 
         Route::delete('ok-user/delete/{id}', 'OkController@delete')->name('ok-user.delete');
 
-
         Route::get('task/new', 'NewTaskController@create')->name('task.create');
+        Route::get('task/speed/{service}', 'NewTaskController@getTaskSpeed')->name('task.speed');
         Route::get('task/new/services/{socialId}', 'NewTaskController@getServicesAjax');
         Route::post('task/store', 'NewTaskController@store')->name('task.store');
 
@@ -22,5 +22,6 @@ Route::group([
         Route::get('tasks/check/{id}', 'TasksController@check')->name('tasks.check');
         Route::put('task/update/{id}', 'MyTasksController@updateAjax');
         Route::delete('task/delete/{id}', 'MyTasksController@delete')->name('task.delete');
+
     });
 });

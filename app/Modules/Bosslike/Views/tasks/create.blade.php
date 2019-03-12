@@ -55,7 +55,7 @@
             </div>
         </div>
         <div class="row">
-            <div class="col-md-6">
+            <div class="col-md-12">
                 <div class="form-group">
                     <label for="link">Ссылка</label>
 
@@ -69,6 +69,18 @@
                                 <strong>{{ $errors->first('link') }}</strong>
                             </span>
                     @endif
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6 col-sm-6 col-xs-12">
+                <div class="form-group">
+                    <label>Скорость выполнения</label>
+                    <div class="btn-group btn-group-justified form-control p-0" role="group" aria-label="Speed">
+                        <button type="button" class="btn btn-default border-right slow">Медленно</button>
+                        <button type="button" class="btn btn-default border-right middle">Умеренно</button>
+                        <button type="button" class="btn btn-default fast">Быстро</button>
+                    </div>
                 </div>
             </div>
             <div class="col-md-3 col-sm-6 col-xs-12">
@@ -128,7 +140,8 @@
 @push('scripts')
     <script>
         $(document).ready(function () {
-            loadCategories(1);
+            var _socialId = $('#social').val();
+            loadCategories(_socialId);
             $('#social').on('change', function () {
                 var _socialId = $(this).val();
                 loadCategories(_socialId);
@@ -170,6 +183,28 @@
                 var _totalPoints = _points * _amount;
                 $('.totalPoints').text(_totalPoints);
             }
+
+            function loadSpeed(social) {
+               /* var _social = $('#social option:selected').text();*/
+                var _service = $('#service_id option:selected').text();
+                console.log(_service);
+                $.ajax({
+                    url: '/task/speed/' + _service,
+                    type: 'GET',
+                    success: function (response) {
+                        console.log(response);
+                    },
+                    error: function () {
+                        console.log(response);
+                    }
+                })
+            }
+
+            $('.slow').on('click', function () {
+                var _social = $('#social option:selected').text();
+                loadSpeed($.trim(_social));
+            })
+
         })
     </script>
 @endpush
