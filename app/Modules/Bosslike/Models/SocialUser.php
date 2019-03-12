@@ -10,6 +10,9 @@ use Illuminate\Database\Eloquent\Model;
  *
  * @property int $id
  * @property int $social_id
+ * @property int $client_id
+ * @property string $client_name
+ * @property string $avatar
  * @property int $user_id
  * @property string $access_token
  * @property \Illuminate\Support\Carbon|null $created_at
