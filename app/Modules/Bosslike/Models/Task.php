@@ -40,7 +40,7 @@ class Task extends Model
      * @var array
      */
     protected $fillable = [
-        'id', 'user_id', 'service_id', 'link', 'points', 'amount'
+        'user_id', 'service_id', 'link', 'picture', 'type', 'points', 'amount'
     ];
 
     /**
@@ -51,6 +51,10 @@ class Task extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function comments()
+    {
+        return $this->hasMany(TaskComments::class, 'task_id', 'id');
+    }
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */

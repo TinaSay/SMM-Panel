@@ -7,8 +7,10 @@ use App\Modules\Bosslike\Models\Social;
 use App\Modules\Bosslike\Models\SocialUser;
 use App\Modules\Bosslike\Models\Task;
 use App\Http\Controllers\Controller;
+use App\Modules\Bosslike\Models\TaskComments;
 use InstagramScraper\Instagram;
 use Config;
+use Illuminate\Http\Request;
 /**
  * Class NewTaskController
  * @package App\Modules\Bosslike\Controllers
@@ -23,19 +25,25 @@ class TasksController extends Controller
         ]);
     }
 
-    public function check($id)
+    public function check($id, Request $request)
     {
         $user = \Auth::user();
         $task = Task::find($id);
+        if($request->has('comment')) {
+            $comment = TaskComments::find($request->input('comment'));
+            $comment = $comment->text;
+        } else {
+            $comment = null;
+        }
         $socialUser = SocialUser::where('social_id', $task->service->social->id)
             ->where('user_id', $user->id)->first();
 
         switch ($task->service->social->name) {
             case 'Instagram':
-                $resp = $this->instagram($socialUser->client_name, $socialUser->client_id, $task->link, $task->service->name);
+                $resp = $this->instagram($socialUser->client_name, $socialUser->client_id, $task->link, $task->service->name, $comment);
                 break;
             case 'Facebook':
-                $resp = $this->facebook($socialUser->client_name, $socialUser->client_id, $task->link, $task->service->name, $socialUser->access_token);
+                $resp = $this->facebook($socialUser->client_name, $socialUser->client_id, $task->link, $task->service->name, $socialUser->access_token, $comment);
                 break;
             case 'Telegram':
 
@@ -50,7 +58,7 @@ class TasksController extends Controller
         return response()->json($resp);
     }
 
-    public function instagram($client_name, $client_id, $post, $service)
+    public function instagram($client_name, $client_id, $post, $service, $randComment = null)
     {
         switch ($service) {
             case 'Like':
@@ -93,7 +101,13 @@ class TasksController extends Controller
 
                 foreach ($comments as $comment) {
                     if($comment->getOwner()->getUsername() == $client_name) {
-                        return response()->json(['status' => 'success', 'message' => 'Задание выполнено', 'post' => $code, 'username' => $client_name]);
+                        if($randComment != null) {
+                            if($comment['text'] == $randComment) {
+                                return response()->json(['status' => 'success', 'message' => 'Задание выполнено', 'post' => $code, 'username' => $client_name]);
+                            }
+                        } else {
+                            return response()->json(['status' => 'success', 'message' => 'Задание выполнено', 'post' => $code, 'username' => $client_name]);
+                        }
                     }
                 }
 
@@ -106,7 +120,7 @@ class TasksController extends Controller
         return response()->json(['status' => 'error', 'title' => 'Нажмите проверить.', 'message' => 'Выполнение не подтверждено, проверьте ещё раз.']);
     }
 
-    public function facebook($client_name, $client_id, $post, $service, $token)
+    public function facebook($client_name, $client_id, $post, $service, $token, $randComment = null)
     {
         $config = Config::get('services.facebook');
 
@@ -166,7 +180,13 @@ class TasksController extends Controller
                 $comments = json_decode($response->getBody());
                 foreach($comments->data as $comment) {
                     if($comment->from->id == $client_id) {
-                        return response()->json(['status' => 'success', 'message' => 'Задание выполнено', 'post' => $post, 'username' => $client_name]);
+                        if($randComment != null) {
+                            if($comment->message == $randComment) {
+                                return response()->json(['status' => 'success', 'message' => 'Задание выполнено', 'post' => $post, 'username' => $client_name]);
+                            }
+                        } else {
+                            return response()->json(['status' => 'success', 'message' => 'Задание выполнено', 'post' => $post, 'username' => $client_name]);
+                        }
                     }
                 }
                 break;

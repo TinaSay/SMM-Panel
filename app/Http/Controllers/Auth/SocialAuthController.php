@@ -9,7 +9,7 @@ use App\Modules\Bosslike\Models\SocialUser;
 use Laravel\Socialite\Facades\Socialite;
 use App\Modules\Bosslike\Models\Social;
 
-class LoginController extends Controller
+class SocialAuthController extends Controller
 {
 
     public function redirectToProvider($provider)
@@ -35,6 +35,7 @@ class LoginController extends Controller
         $localUser->social_id = $social->id;
         $localUser->client_id = $user->id;
         $localUser->client_name = $user->nickname;
+        $localUser->avatar = $user->avatar;
         $localUser->user_id = $user->id;
         $localUser->access_token = $user->token;
         $localUser->save();
