@@ -62,11 +62,48 @@
                     </div>
 
                 @else
-                    <a href="{{ route('soc.login', ['provider' =>'instagram']) }}"
-                       class="btn btn-block btn-lg btn-instagram">
+                    <a href="{{ route('insta.login', ['provider' =>'instagram']) }}"
+                       class="btn btn-block btn-lg btn-instagram"  target="_blank">
                         <i class="fab fa-instagram"></i>
                         Привязать аккаунт Instagram</a>
                 @endif
+            </div>
+
+            <div class="form-group">
+                <label>Twitter</label>
+                @if($twitter)
+
+                    <div class="user-data">
+                        <div class="user-avatar float-left mr-3">
+                            <img src="{{ $twitter->avatar }}" alt="" class="img-thumbnail">
+                        </div>
+                        <!-- <div class="user-name">{{ Bosslike::getUserInfo()['name'] }}</div> -->
+                        <<!-- div class="user-desc">
+                            <form action="{{ route('twitter.logout')}}" method="POST">
+                                @method('DELETE')
+                                @csrf
+                                <button class="btn btn-default btn-sm delete-social"
+                                        onclick="return confirm('Отвязать?')">
+                                    <i class="fa fa-times"></i>
+                                    Отвязать аккаунт
+                                </button>
+                            </form>
+                        </div> -->
+                    </div>
+
+                @else
+                    <a href="{{ route('twitter.login') }}"
+                       class="btn btn-block btn-lg btn-twitter" target="_blank">
+                        <i class="fab fa-twitter"></i>
+                        Привязать аккаунт Twitter</a>
+                @endif
+            </div>
+
+            <div class="form-group">
+                <label>Telegram</label>
+                <div class="user-data">
+                    <script async src="https://telegram.org/js/telegram-widget.js?5" data-telegram-login="PicStarBot" data-size="large" data-userpic="false" data-radius="10" data-auth-url="http://lastsmm.com/telegram" data-request-access="write"></script>
+                </div>
             </div>
         </div>
     </div>
