@@ -43,7 +43,7 @@ class TasksController extends Controller
                 $resp = $this->instagram($socialUser->client_name, $socialUser->client_id, $task->link, $task->service->name, $comment);
                 break;
             case 'Facebook':
-                $resp = $this->facebook($socialUser->client_name, $socialUser->client_id, $task->link, $task->service->name, $socialUser->access_token, $comment);
+                $resp = $this->facebook($socialUser->client_name, $socialUser->client_id, $task->link, $task->post_id, $task->service->name, $socialUser->access_token, $comment);
                 break;
             case 'Telegram':
 
@@ -120,7 +120,7 @@ class TasksController extends Controller
         return response()->json(['status' => 'error', 'title' => 'Нажмите проверить.', 'message' => 'Выполнение не подтверждено, проверьте ещё раз.']);
     }
 
-    public function facebook($client_name, $client_id, $post, $service, $token, $randComment = null)
+    public function facebook($client_name, $client_id, $post, $postId, $service, $token, $randComment = null)
     {
         $config = Config::get('services.facebook');
 
@@ -129,17 +129,15 @@ class TasksController extends Controller
             'app_secret' => $config['client_secret'],
             'default_graph_version' => 'v3.2',
         ]);
-
+//print $client_id . '_' . $postId;
         switch ($service) {
             case 'Like':
                 try {
-                    $response = $fb->get('/' . $client_id . '_' . $post . '/likes/', $token);
+                    $response = $fb->get('/' . $client_id . '_' . $postId . '/likes/', $token);
                 } catch(\Facebook\Exceptions\FacebookResponseException $e) {
-                    echo 'Graph returned an error: ' . $e->getMessage();
-                    return response()->json(['status' => 'error', 'title' => 'Что то пошло не так.', 'message' => 'Попробуйте ещё раз.']);
+                    return response()->json(['status' => 'error', 'title' => 'Что то пошло не так.', 'message' => 'Попробуйте ещё раз.', 'error' => $e->getMessage()]);
                 } catch(\Facebook\Exceptions\FacebookSDKException $e) {
-                    echo 'Facebook SDK returned an error: ' . $e->getMessage();
-                    return response()->json(['status' => 'error', 'title' => 'Что то пошло не так.', 'message' => 'Попробуйте ещё раз.']);
+                    return response()->json(['status' => 'error', 'title' => 'Что то пошло не так.', 'message' => 'Попробуйте ещё раз.', 'error' => $e->getMessage()]);
                 }
                 $likes = json_decode($response->getBody());
                 foreach($likes->data as $like) {
@@ -152,12 +150,10 @@ class TasksController extends Controller
                 try {
                     $response = $fb->get('/' . $client_id . '/likes/', $token);
                 } catch(\Facebook\Exceptions\FacebookResponseException $e) {
-                    echo 'Graph returned an error: ' . $e->getMessage();
-                    return response()->json(['status' => 'error', 'title' => 'Что то пошло не так.', 'message' => 'Попробуйте ещё раз.']);
+                    return response()->json(['status' => 'error', 'title' => 'Что то пошло не так.', 'message' => 'Попробуйте ещё раз.', 'error' => $e->getMessage()]);
 //                    exit;
                 } catch(\Facebook\Exceptions\FacebookSDKException $e) {
-                    echo 'Facebook SDK returned an error: ' . $e->getMessage();
-                    return response()->json(['status' => 'error', 'title' => 'Что то пошло не так.', 'message' => 'Попробуйте ещё раз.']);
+                    return response()->json(['status' => 'error', 'title' => 'Что то пошло не так.', 'message' => 'Попробуйте ещё раз.', 'error' => $e->getMessage()]);
 //                    exit;
                 }
                 $follows = json_decode($response->getBody());
@@ -169,13 +165,11 @@ class TasksController extends Controller
                 break;
             case 'Comment':
                 try {
-                    $response = $fb->get('/' . $client_id . '_' . $post . '/comments/', $token);
+                    $response = $fb->get('/' . $client_id . '_' . $postId . '/comments/', $token);
                 } catch(\Facebook\Exceptions\FacebookResponseException $e) {
-                    echo 'Graph returned an error: ' . $e->getMessage();
-                    return response()->json(['status' => 'error', 'title' => 'Что то пошло не так.', 'message' => 'Попробуйте ещё раз.']);
+                    return response()->json(['status' => 'error', 'title' => 'Что то пошло не так.', 'message' => 'Попробуйте ещё раз.', 'error' => $e->getMessage()]);
                 } catch(\Facebook\Exceptions\FacebookSDKException $e) {
-                    echo 'Facebook SDK returned an error: ' . $e->getMessage();
-                    return response()->json(['status' => 'error', 'title' => 'Что то пошло не так.', 'message' => 'Попробуйте ещё раз.']);
+                    return response()->json(['status' => 'error', 'title' => 'Что то пошло не так.', 'message' => 'Попробуйте ещё раз.', 'error' => $e->getMessage()]);
                 }
                 $comments = json_decode($response->getBody());
                 foreach($comments->data as $comment) {
@@ -194,11 +188,9 @@ class TasksController extends Controller
                 try {
                     $response = $fb->get('/' . $client_id . '/posts/', $token);
                 } catch(\Facebook\Exceptions\FacebookResponseException $e) {
-                    echo 'Graph returned an error: ' . $e->getMessage();
-                    return response()->json(['status' => 'error', 'title' => 'Что то пошло не так.', 'message' => 'Попробуйте ещё раз.']);
+                    return response()->json(['status' => 'error', 'title' => 'Что то пошло не так.', 'message' => 'Попробуйте ещё раз.', 'error' => $e->getMessage()]);
                 } catch(\Facebook\Exceptions\FacebookSDKException $e) {
-                    echo 'Facebook SDK returned an error: ' . $e->getMessage();
-                    return response()->json(['status' => 'error', 'title' => 'Что то пошло не так.', 'message' => 'Попробуйте ещё раз.']);
+                    return response()->json(['status' => 'error', 'title' => 'Что то пошло не так.', 'message' => 'Попробуйте ещё раз.', 'error' => $e->getMessage()]);
                 }
                 $posts = json_decode($response->getBody());
                 foreach($posts->data as $item) {

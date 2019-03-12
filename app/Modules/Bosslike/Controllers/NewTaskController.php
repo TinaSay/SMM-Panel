@@ -44,6 +44,7 @@ class NewTaskController extends Controller
             $task->link = $request->input('link');
             $task->picture = $validator['picture'];
             $task->type = $validator['type'];
+            $task->post_id = $validator['postId'];
 
             $task->points = $request->input('points');
             $task->amount = $request->input('amount');
@@ -111,9 +112,9 @@ class NewTaskController extends Controller
             $media = $e->getCode();
         }
 
-        if($media['id'] != 0) {
+        if($media['id'] > 0) {
             (isset($media['imageThumbnailUrl'])) ? $pic = $media['imageThumbnailUrl'] : $pic = $media['profilePicUrl'];
-            return ['status' => true, 'picture' => $pic, 'type' => $type];
+            return ['status' => true, 'picture' => $pic, 'type' => $type, 'postId' => $media['id']];
         } else {
             return ['status' => false, 'message' => 'Неверная ссылка или не удалось получить данные из социальной сети или ссылка доступна только вам.'];
         }
@@ -143,7 +144,7 @@ class NewTaskController extends Controller
                 $page = json_decode($response->getBody());
 
                 if(isset($page->name) && is_numeric($page->id)) {
-                    return ['status' => true, 'picture' => $page->picture->data->url, 'type' => 'page'];
+                    return ['status' => true, 'picture' => $page->picture->data->url, 'type' => 'page', 'postId' => $url[0]];
                 }
                 break;
             case 'Like':
@@ -169,7 +170,7 @@ class NewTaskController extends Controller
                 $post = json_decode($response->getBody());
 
                 if(isset($post->picture) && isset($post->id)) {
-                    return ['status' => true, 'picture' => $post->picture, 'type' => $post->type];
+                    return ['status' => true, 'picture' => $post->picture, 'type' => $post->type, 'postId' => $postId];
                 }
                 break;
             default:
