@@ -184,25 +184,47 @@
                 $('.totalPoints').text(_totalPoints);
             }
 
-            function loadSpeed(social) {
-               /* var _social = $('#social option:selected').text();*/
+            function loadSpeed($speed) {
+                var _social = $('#social option:selected').text();
                 var _service = $('#service_id option:selected').text();
-                console.log(_service);
+
                 $.ajax({
-                    url: '/task/speed/' + _service,
+                    url: '/task/speed/' + _social + '/' + _service,
                     type: 'GET',
                     success: function (response) {
-                        console.log(response);
+                        if ($speed == 'slow') {
+                            $('#points').val(response.slow);
+                        } else if ($speed == 'middle') {
+                            $('#points').val(response.middle);
+                        } else if ($speed == 'fast') {
+                            $('#points').val(response.fast);
+                        }
+                        countPrice();
+                        totalPoints();
                     },
                     error: function () {
-                        console.log(response);
+                        console.log('error');
                     }
                 })
             }
 
             $('.slow').on('click', function () {
-                var _social = $('#social option:selected').text();
-                loadSpeed($.trim(_social));
+                loadSpeed('slow');
+                $(this).addClass('active');
+                $('.middle').removeClass('active');
+                $('.fast').removeClass('active');
+            });
+            $('.middle').on('click', function () {
+                loadSpeed('middle');
+                $(this).toggleClass('active');
+                $('.slow').removeClass('active');
+                $('.fast').removeClass('active');
+            });
+            $('.fast').on('click', function () {
+                loadSpeed('fast');
+                $(this).toggleClass('active');
+                $('.slow').removeClass('active');
+                $('.middle').removeClass('active');
             })
 
         })

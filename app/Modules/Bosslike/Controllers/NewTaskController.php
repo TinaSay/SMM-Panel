@@ -30,15 +30,17 @@ class NewTaskController extends Controller
 
     /**
      * @param $social
+     * @param $service
      * @return \Illuminate\Http\JsonResponse
      */
-    public function getTaskSpeed($service)
+    public function getTaskSpeed($social, $service)
     {
         $jsonString = file_get_contents(asset('js/points.json'));
+        $soc = trim($social);
         $ser = trim($service);
         $data = json_decode($jsonString, true);
 
-        return response()->json($data[1][$ser]);
+        return response()->json($data[$soc][$ser]);
     }
 
 
