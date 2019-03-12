@@ -5,9 +5,11 @@ namespace App;
 use App\Modules\Bosslike\Models\SocialUser;
 use App\Modules\Bosslike\Models\Task;
 use App\Modules\SmmPro\Models\Order;
+use Http\Client\Exception;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use GuzzleHttp;
+use App\Exceptions\Handler;
 
 /**
  * App\User
@@ -93,7 +95,7 @@ class User extends Authenticatable
     }
 
     /**
-     * @return mixed
+     * @return bool|int|mixed
      * @throws GuzzleHttp\Exception\GuzzleException
      */
     public static function getUserBalance()
@@ -109,6 +111,7 @@ class User extends Authenticatable
         ]);
 
         $res = json_decode((string)$response->getBody()->getContents());
+
         if (!$res == null) {
             return $res;
         } else {
@@ -120,7 +123,8 @@ class User extends Authenticatable
      * @param $order
      * @throws GuzzleHttp\Exception\GuzzleException
      */
-    public static function refundUserBalance($order)
+    public
+    static function refundUserBalance($order)
     {
         $client = new GuzzleHttp\Client([
             'base_uri' => 'https://billing.smm-pro.uz'

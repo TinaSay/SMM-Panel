@@ -8,9 +8,18 @@
     @endif
 
     <div class="row">
-        <div class="col-md-8">
-            <form method="POST" action="{{ route('task.store') }}" enctype="multipart/form-data">
-                @csrf
+        <div class="col-md-12">
+            <div class="alert alert-warning alert-dismissable text-center">
+                <p><i class="fas fa-exclamation-circle"></i> Внимание, обновление логики формы</p>
+                <p>Теперь при создании задания, Вы указываете количество баллов, которое получит исполнитель.<br>Цена
+                    для Вас рассчитывается ниже.</p>
+            </div>
+        </div>
+    </div>
+    <form method="POST" action="{{ route('task.store') }}" enctype="multipart/form-data">
+        @csrf
+        <div class="row">
+            <div class="col-md-6">
 
                 <div class="form-group">
                     <select
@@ -27,7 +36,9 @@
 
                     </select>
                 </div>
+            </div>
 
+            <div class="col-md-6">
                 <div class="form-group">
                     <select
                         class="selectpicker btn-group bootstrap-select dropup form-control{{ $errors->has('service_id') ? ' is-invalid' : '' }}"
@@ -41,7 +52,10 @@
                             </span>
                     @endif
                 </div>
-
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-6">
                 <div class="form-group">
                     <label for="link">Ссылка</label>
 
@@ -56,11 +70,12 @@
                             </span>
                     @endif
                 </div>
-
+            </div>
+            <div class="col-md-3 col-sm-6 col-xs-12">
                 <div class="form-group">
                     <label for="points">Оплата исполнителю</label>
 
-                    <input id="points" type="number" name="points" value="{{ old('points') }}"
+                    <input id="points" type="number" min="0" name="points" value="{{ old('points') }}"
                            class="form-control{{ $errors->has('points') ? ' is-invalid' : '' }}"
                            placeholder="кол.баллов" onfocus="this.placeholder = ''"
                            onblur="this.placeholder = 'кол.баллов'">
@@ -71,11 +86,12 @@
                             </span>
                     @endif
                 </div>
-
+            </div>
+            <div class="col-md-3 col-sm-6 col-xs-12">
                 <div class="form-group">
                     <label for="amount">Количество выполнений</label>
 
-                    <input id="amount" type="number" name="amount" value="{{ old('amount') }}"
+                    <input id="amount" type="number" min="0" name="amount" value="{{ old('amount') }}"
                            class="form-control{{ $errors->has('amount') ? ' is-invalid' : '' }}">
 
                     @if ($errors->has('amount'))
@@ -84,31 +100,49 @@
                             </span>
                     @endif
                 </div>
-
-
-                <div class="form-group">
-                    <button type="submit" class="btn btn-primary btn-lilac">
-                        Создать
-                    </button>
-                    <a class="btn btn-primary btn-gray" href="{{ route('tasks.my') }}">
-                        Отмена
-                    </a>
-                </div>
-            </form>
+            </div>
         </div>
-    </div>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="alert alert-info alert-dismissable text-center">
+                    <a href="#" class="close" data-dismiss="alert" aria-hidden="true">
+                        <i class="icon-x-sm"></i></a>
+                    Цена 1 выполнения для вас: <strong class="points_for_owner">0&nbsp;баллов</strong>
+                    <br>
+                    <em>Цена = Оплата исполнителю * 2 <a target="_blank" href="">подробнее</a></em>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <button type="submit" class="btn btn-primary btn-lilac">
+                Создать
+            </button>
+            <a class="btn btn-primary btn-gray" href="{{ route('tasks.my') }}">
+                Отмена
+            </a>
+            <span class="totalPoints">0 </span> <span> баллов</span>
+        </div>
+    </form>
 
 @endsection
 @push('scripts')
     <script>
         $(document).ready(function () {
-            {{--var _socialId = {!! old('service_id') !!};--}}
             loadCategories(1);
             $('#social').on('change', function () {
                 var _socialId = $(this).val();
                 loadCategories(_socialId);
             });
-            // ' + (old === v.id) ? 'selected' : '' + '
+
+            $('#points').on('change paste keyup', function () {
+                countPrice();
+                totalPoints();
+            });
+
+            $('#amount').on('change paste keyup', function () {
+                totalPoints();
+            });
+
             function loadCategories($socialId) {
                 $.ajax({
                     url: '/task/new/services/' + $socialId,
@@ -123,6 +157,18 @@
                         console.log('error');
                     }
                 })
+            }
+
+            function countPrice() {
+                var _price = $('#points').val() * 2;
+                $('.points_for_owner').text(_price);
+            }
+
+            function totalPoints() {
+                var _points = $('.points_for_owner').text();
+                var _amount = $('#amount').val();
+                var _totalPoints = _points * _amount;
+                $('.totalPoints').text(_totalPoints);
             }
         })
     </script>
