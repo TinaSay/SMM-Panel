@@ -11,6 +11,7 @@ use App\Modules\Bosslike\Requests\TaskSaveRequest;
 //use PHPUnit\Framework\Exception;
 Use Exception;
 use Illuminate\Support\Facades\Input;
+use GuzzleHttp\Client;
 
 /**
  * Class NewTaskController
@@ -67,6 +68,11 @@ class NewTaskController extends Controller
         return response()->json($services);
     }
 
+    // public function validateChannel($data)
+    // {
+        
+    // }
+
     public function validatePost($data)
     {
         $service = Service::find($data['service_id']);
@@ -79,11 +85,65 @@ class NewTaskController extends Controller
             case 'Facebook':
                 $result = $this->validateFacebook($data, $service->name, $socialUsers->access_token);
                 break;
+            case 'Telegram' :
+                $result = $this->validateChannel($data);
+                break;
             default:
                 break;
         }
 
         return $result;
+    }
+
+    public function validateChannel($data)
+    {
+        $path = explode('t.me/', $data['link']);
+        $client = new Client();
+        $url = 'https://api.telegram.org/bot';
+        $channel_admin = $client->request('POST', $url.env('TG_TOKEN').'/getChatAdministrators', 
+            [
+                'form_params' => [
+                    'chat_id' => '@'.$path[1],
+            ],
+            'http_errors' => false
+        ]);
+        $result = json_decode($channel_admin->getBody()->getContents());
+        if ($result->ok == true) {
+            $return = false;
+            foreach ($result->result as $admin) {
+                if ($admin->status == 'administrator' && $admin->user->username == env('TG_NAME')) {
+                    $return = true;
+                }
+            }
+
+            if ($return) {
+                return ['status' => false, 'message' => 'В указанном канале не добавлен наш бот или не даны администраторские права'];
+            }
+
+            $channel = $client->request('POST', $url.env('TG_TOKEN').'/getChat', 
+                [
+                    'form_params' => [
+                        'chat_id' => '@'.$path[1],
+                ],
+                'http_errors' => false
+            ]);
+            $result = json_decode($channel->getBody()->getContents());
+            if (!isset($result->result->photo)) {
+                return ['status' => true, 'picture' => ''];
+            }
+            $channel_photo = $client->request('POST', $url.env('TG_TOKEN').'/getFile', 
+                [
+                    'form_params' => [
+                        'file_id' => $result->result->photo->big_file_id,
+                ],
+                'http_errors' => false
+            ]);
+            $result = json_decode($channel_photo->getBody()->getContents());
+            $img_url = 'https://api.telegram.org/file/bot'.env('TG_TOKEN').'/'.$result->result->file_path;
+            return ['status' => true, 'picture' => $img_url];
+        } else {
+            return ['status' => false, 'message' => 'В указанном канале не добавлен наш бот или не даны администраторские права'];
+        }
     }
 
     public function validateInstagram($data, $service)

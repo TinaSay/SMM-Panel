@@ -12,6 +12,11 @@ Route::group([
 
         Route::delete('ok-user/delete/{id}', 'OkController@delete')->name('ok-user.delete');
 
+        
+        Route::get('telegram', 'ProfileController@telegram')->name('telegram');
+
+        Route::get('twitter/login', 'ProfileController@twitter_login')->name('twitter.login');
+        Route::get('twitter/callback', 'ProfileController@twitter_callback')->name('twitter.callback');
 
         Route::get('task/new', 'NewTaskController@create')->name('task.create');
         Route::get('task/new/services/{socialId}', 'NewTaskController@getServicesAjax');

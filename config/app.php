@@ -180,6 +180,7 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
         \SocialiteProviders\Manager\ServiceProvider::class,
+        Thujohn\Twitter\TwitterServiceProvider::class,
     ],
 
     /*
@@ -233,6 +234,7 @@ return [
         'Bosslike' => \App\Modules\Bosslike\Facades\BosslikeFacade::class,
         'Socialite' => Laravel\Socialite\Facades\Socialite::class,
         'Toast' => \Grimthorr\LaravelToast\Facade::class,
+        'Twitter' => Thujohn\Twitter\Facades\Twitter::class,
     ],
 
 ];

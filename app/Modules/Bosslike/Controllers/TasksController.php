@@ -9,6 +9,7 @@ use App\Modules\Bosslike\Models\Task;
 use App\Http\Controllers\Controller;
 use InstagramScraper\Instagram;
 use Config;
+use GuzzleHttp\Client;
 /**
  * Class NewTaskController
  * @package App\Modules\Bosslike\Controllers
@@ -38,7 +39,7 @@ class TasksController extends Controller
                 $resp = $this->facebook($socialUser->client_name, $socialUser->client_id, $task->link, $task->service->name, $socialUser->access_token);
                 break;
             case 'Telegram':
-
+                $resp = $this->telegram($task->link, $socialUser);
                 break;
             case 'OK':
 
@@ -48,6 +49,28 @@ class TasksController extends Controller
         }
 
         return response()->json($resp);
+    }
+
+    public function telegram($link, $token)
+    {
+        $path = explode('t.me/', $link);
+        $client = new Client();
+        $url = 'https://api.telegram.org/bot';
+        $channel_admin = $client->request('POST', $url.env('TG_TOKEN').'/getChatMember', 
+            [
+                'form_params' => [
+                    'chat_id' => '@'.$path[1],
+                    'user_id' => $token->client_id
+            ],
+            'http_errors' => false
+        ]);
+        $result = json_decode($channel_admin->getBody()->getContents());
+        // dd($result);
+        if ($result->ok == true && $result->result->status == 'member') {
+            return response()->json(['status' => 'success', 'message' => 'Задание выполнено']);
+        } else {
+            return response()->json(['status' => 'error', 'title' => 'Нажмите проверить.', 'message' => 'Выполнение не подтверждено, проверьте ещё раз.']);
+        }
     }
 
     public function instagram($client_name, $client_id, $post, $service)
