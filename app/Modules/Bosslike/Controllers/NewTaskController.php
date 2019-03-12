@@ -59,7 +59,9 @@ class NewTaskController extends Controller
             $task->user_id = \Auth::id();
             $task->service_id = $request->input('service_id');
             $task->link = $request->input('link');
-
+            $task->picture = $validator['picture'];
+            $task->type = $validator['type'];
+            $task->post_id = $validator['postId'];
             $task->points = $request->input('points');
             $task->amount = $request->input('amount');
             $task->save();

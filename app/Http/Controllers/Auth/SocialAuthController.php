@@ -47,7 +47,7 @@ class SocialAuthController extends Controller
         $localUser = new SocialUser();
         $localUser->social_id = $social->id;
         $localUser->client_id = $user->id;
-        $localUser->client_name = $user->name;
+        $localUser->client_name = $user->nickname;
         $localUser->user_id = $user->id;
         $localUser->access_token = $user->token;
         $localUser->avatar = $user->avatar;
