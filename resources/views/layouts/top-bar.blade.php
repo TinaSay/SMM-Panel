@@ -6,7 +6,7 @@
         </li>
         <li class="nav-item nav-link dropdown">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                <span>{{ \App\User::getUserBalance() }} сум</span>
+                {{--<span>{{ \App\User::getUserBalance() }} сум</span>--}}
             </a>
             <ul class="dropdown-menu">
                 <li class="text-center">
@@ -22,3 +22,11 @@
         </li>
     </ul>
 </div>
+@push('scripts')
+    <script>
+        $(document).ready(function () {
+
+
+        });
+    </script>
+@endpush

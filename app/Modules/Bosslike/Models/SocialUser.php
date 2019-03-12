@@ -31,6 +31,10 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $avatar
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Modules\Bosslike\Models\SocialUser whereAvatar($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Modules\Bosslike\Models\SocialUser whereNickname($value)
+ * @property string $client_name
+ * @property int $client_id
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Modules\Bosslike\Models\SocialUser whereClientId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Modules\Bosslike\Models\SocialUser whereClientName($value)
  */
 class SocialUser extends Model
 {

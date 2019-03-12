@@ -2,8 +2,6 @@
 
 namespace App\Modules\Bosslike\Controllers;
 
-use App\Modules\Bosslike\Models\Service;
-use App\Modules\Bosslike\Models\Social;
 use App\Modules\Bosslike\Models\SocialUser;
 use App\Modules\Bosslike\Models\Task;
 use App\Http\Controllers\Controller;
@@ -77,7 +75,7 @@ class TasksController extends Controller
     {
         switch ($service) {
             case 'Like':
-                $code = str_replace('/', '',str_replace('https://www.instagram.com/p/', '', $post));
+                $code = str_replace('/', '', str_replace('https://www.instagram.com/p/', '', $post));
 
                 $instagram = Instagram::withCredentials(Task::INSTAGRAM_USERNAME, Task::INSTAGRAM_PASSWORD, '');
                 $instagram->login();
@@ -87,14 +85,14 @@ class TasksController extends Controller
                 $likes = $instagram->getMediaLikesByCode($code, 50);
 
                 foreach ($likes as $like) {
-                    if($like->getUsername() == $client_name) {
+                    if ($like->getUsername() == $client_name) {
                         return response()->json(['status' => 'success', 'message' => 'Задание выполнено', 'username' => $client_name]);
                     }
                 }
 
                 break;
             case 'Subscribe':
-                $code = str_replace('/', '',str_replace('https://www.instagram.com/', '', $post));
+                $code = str_replace('/', '', str_replace('https://www.instagram.com/', '', $post));
                 $instagram = Instagram::withCredentials(Task::INSTAGRAM_USERNAME, Task::INSTAGRAM_PASSWORD, '');
                 $instagram->login();
 
@@ -102,20 +100,20 @@ class TasksController extends Controller
 
                 $followers = $instagram->getFollowing($client_id, 30, 30, true);
 
-                foreach($followers as $follower) {
-                    if($follower['username'] == $code) {
+                foreach ($followers as $follower) {
+                    if ($follower['username'] == $code) {
                         return response()->json(['status' => 'success', 'message' => 'Задание выполнено', 'username' => $code]);
                     }
                 }
 
                 break;
             case 'Comment':
-                $code = str_replace('/', '',str_replace('https://www.instagram.com/p/', '', $post));
+                $code = str_replace('/', '', str_replace('https://www.instagram.com/p/', '', $post));
                 $instagram = new Instagram();
                 $comments = $instagram->getMediaCommentsByCode($code, 50);
 
                 foreach ($comments as $comment) {
-                    if($comment->getOwner()->getUsername() == $client_name) {
+                    if ($comment->getOwner()->getUsername() == $client_name) {
                         return response()->json(['status' => 'success', 'message' => 'Задание выполнено', 'post' => $code, 'username' => $client_name]);
                     }
                 }
@@ -143,16 +141,16 @@ class TasksController extends Controller
             case 'Like':
                 try {
                     $response = $fb->get('/' . $client_id . '_' . $post . '/likes/', $token);
-                } catch(\Facebook\Exceptions\FacebookResponseException $e) {
+                } catch (\Facebook\Exceptions\FacebookResponseException $e) {
                     echo 'Graph returned an error: ' . $e->getMessage();
                     return response()->json(['status' => 'error', 'title' => 'Что то пошло не так.', 'message' => 'Попробуйте ещё раз.']);
-                } catch(\Facebook\Exceptions\FacebookSDKException $e) {
+                } catch (\Facebook\Exceptions\FacebookSDKException $e) {
                     echo 'Facebook SDK returned an error: ' . $e->getMessage();
                     return response()->json(['status' => 'error', 'title' => 'Что то пошло не так.', 'message' => 'Попробуйте ещё раз.']);
                 }
                 $likes = json_decode($response->getBody());
-                foreach($likes->data as $like) {
-                    if($like->id == $client_id) {
+                foreach ($likes->data as $like) {
+                    if ($like->id == $client_id) {
                         return response()->json(['status' => 'success', 'message' => 'Задание выполнено', 'post' => $post, 'username' => $client_name]);
                     }
                 }
@@ -160,18 +158,18 @@ class TasksController extends Controller
             case 'Subscribe':
                 try {
                     $response = $fb->get('/' . $client_id . '/likes/', $token);
-                } catch(\Facebook\Exceptions\FacebookResponseException $e) {
+                } catch (\Facebook\Exceptions\FacebookResponseException $e) {
                     echo 'Graph returned an error: ' . $e->getMessage();
                     return response()->json(['status' => 'error', 'title' => 'Что то пошло не так.', 'message' => 'Попробуйте ещё раз.']);
 //                    exit;
-                } catch(\Facebook\Exceptions\FacebookSDKException $e) {
+                } catch (\Facebook\Exceptions\FacebookSDKException $e) {
                     echo 'Facebook SDK returned an error: ' . $e->getMessage();
                     return response()->json(['status' => 'error', 'title' => 'Что то пошло не так.', 'message' => 'Попробуйте ещё раз.']);
 //                    exit;
                 }
                 $follows = json_decode($response->getBody());
-                foreach($follows->data as $follow) {
-                    if($follow->name == $post) {
+                foreach ($follows->data as $follow) {
+                    if ($follow->name == $post) {
                         return response()->json(['status' => 'success', 'message' => 'Задание выполнено', 'post' => $post, 'username' => $client_name]);
                     }
                 }
@@ -179,16 +177,16 @@ class TasksController extends Controller
             case 'Comment':
                 try {
                     $response = $fb->get('/' . $client_id . '_' . $post . '/comments/', $token);
-                } catch(\Facebook\Exceptions\FacebookResponseException $e) {
+                } catch (\Facebook\Exceptions\FacebookResponseException $e) {
                     echo 'Graph returned an error: ' . $e->getMessage();
                     return response()->json(['status' => 'error', 'title' => 'Что то пошло не так.', 'message' => 'Попробуйте ещё раз.']);
-                } catch(\Facebook\Exceptions\FacebookSDKException $e) {
+                } catch (\Facebook\Exceptions\FacebookSDKException $e) {
                     echo 'Facebook SDK returned an error: ' . $e->getMessage();
                     return response()->json(['status' => 'error', 'title' => 'Что то пошло не так.', 'message' => 'Попробуйте ещё раз.']);
                 }
                 $comments = json_decode($response->getBody());
-                foreach($comments->data as $comment) {
-                    if($comment->from->id == $client_id) {
+                foreach ($comments->data as $comment) {
+                    if ($comment->from->id == $client_id) {
                         return response()->json(['status' => 'success', 'message' => 'Задание выполнено', 'post' => $post, 'username' => $client_name]);
                     }
                 }
@@ -196,16 +194,16 @@ class TasksController extends Controller
             case 'Share':
                 try {
                     $response = $fb->get('/' . $client_id . '/posts/', $token);
-                } catch(\Facebook\Exceptions\FacebookResponseException $e) {
+                } catch (\Facebook\Exceptions\FacebookResponseException $e) {
                     echo 'Graph returned an error: ' . $e->getMessage();
                     return response()->json(['status' => 'error', 'title' => 'Что то пошло не так.', 'message' => 'Попробуйте ещё раз.']);
-                } catch(\Facebook\Exceptions\FacebookSDKException $e) {
+                } catch (\Facebook\Exceptions\FacebookSDKException $e) {
                     echo 'Facebook SDK returned an error: ' . $e->getMessage();
                     return response()->json(['status' => 'error', 'title' => 'Что то пошло не так.', 'message' => 'Попробуйте ещё раз.']);
                 }
                 $posts = json_decode($response->getBody());
-                foreach($posts->data as $item) {
-                    if($item->id == $client_id . '_' . $post) {
+                foreach ($posts->data as $item) {
+                    if ($item->id == $client_id . '_' . $post) {
                         return response()->json(['status' => 'success', 'message' => 'Задание выполнено', 'post' => $post, 'username' => $client_name]);
                     }
                 }

@@ -30,6 +30,10 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Modules\Bosslike\Models\Task whereUpdatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Modules\Bosslike\Models\Task whereUserId($value)
  * @mixin \Eloquent
+ * @property string $type
+ * @property string $picture
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Modules\Bosslike\Models\Task wherePicture($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Modules\Bosslike\Models\Task whereType($value)
  */
 class Task extends Model
 {

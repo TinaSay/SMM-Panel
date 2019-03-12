@@ -14,10 +14,10 @@
                 @if($localUser)
 
                     <div class="user-data">
-                        <div class="user-avatar float-left col-sm-3">
+                        <div class="user-avatar float-left mr-3">
                             <img src="{{ $localUser->avatar }}" alt="" class="img-thumbnail">
                         </div>
-                        <div class="user-name">{{ $localUser->nickname }}</div>
+                        <div class="user-name">{{ $localUser->clint_name }}</div>
                         <div class="user-desc">
                             <form action="{{ route('ok-user.delete', $localUser->id)}}" method="POST">
                                 @method('DELETE')
@@ -32,8 +32,8 @@
                     </div>
 
                 @else
-                    <a href="{{ route('ok.login') }}"
-                       class="btn btn-block btn-lg btn-odnoklassniki"  target="_blank">
+                    <a href="{{route('soc.login', ['provider' =>'odnoklassniki']) }}"
+                       class="btn btn-block btn-lg btn-odnoklassniki">
                         <i class="fab fa-odnoklassniki"></i>
                         Привязать аккаунт Одноклассники</a>
                 @endif
@@ -45,9 +45,9 @@
 
                     <div class="user-data">
                         <div class="user-avatar float-left mr-3">
-                            <img src="{{ Bosslike::getUserInfo()['avatar'] }}" alt="" class="img-thumbnail">
+                            <img src="{{ $localUser->avatar }}" alt="" class="img-thumbnail">
                         </div>
-                        <div class="user-name">{{ Bosslike::getUserInfo()['name'] }}</div>
+                        <div class="user-name">{{ $localUser->client_name }}</div>
                         <div class="user-desc">
                             <form action="{{ route('ok-user.delete', $localUser->id)}}" method="POST">
                                 @method('DELETE')

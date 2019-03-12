@@ -14,8 +14,9 @@ class AddColumnsSocialUsers extends Migration
     public function up()
     {
         Schema::table('social_users', function (Blueprint $table) {
-            $table->string('nickname')->after('access_token');
-            $table->string('avatar')->after('nickname');
+            $table->string('client_name')->after('access_token');
+            $table->string('avatar')->after('client_name');
+            $table->integer('client_id')->after('client_name');
         });
     }
 

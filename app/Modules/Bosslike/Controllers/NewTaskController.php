@@ -30,6 +30,20 @@ class NewTaskController extends Controller
     }
 
     /**
+     * @param $social
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getTaskSpeed($service)
+    {
+        $jsonString = file_get_contents(asset('js/points.json'));
+        $ser = trim($service);
+        $data = json_decode($jsonString, true);
+
+        return response()->json($data[1][$ser]);
+    }
+
+
+    /**
      * @param TaskSaveRequest $request
      * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
      */
@@ -38,7 +52,7 @@ class NewTaskController extends Controller
 
         $data = $request->only('link', 'service_id', 'social');
         $validator = $this->validatePost($data);
-        if($validator['status']) {
+        if ($validator['status']) {
             $task = new Task();
             $task->user_id = \Auth::id();
             $task->service_id = $request->input('service_id');
@@ -152,7 +166,7 @@ class NewTaskController extends Controller
         try {
             switch ($service) {
                 case 'Subscribe':
-                    $username = str_replace('/', '',str_replace('https://www.instagram.com/', '', $data['link']));
+                    $username = str_replace('/', '', str_replace('https://www.instagram.com/', '', $data['link']));
                     $media = $instagram->getAccount($username);
                     break;
                 case 'Like':
@@ -166,7 +180,7 @@ class NewTaskController extends Controller
             $media = $e->getCode();
         }
 
-        if($media['id'] != 0) {
+        if ($media['id'] != 0) {
             return ['status' => true];
         } else {
             return ['status' => false, 'message' => 'Неверная ссылка или не удалось получить данные из социальной сети или ссылка доступна только вам.'];
@@ -188,22 +202,22 @@ class NewTaskController extends Controller
                 case 'Subscribe':
                     try {
                         $response = $fb->get('/' . $data['link'], $token);
-                    } catch(\Facebook\Exceptions\FacebookResponseException $e) {
+                    } catch (\Facebook\Exceptions\FacebookResponseException $e) {
                         echo 'Graph returned an error: ' . $e->getMessage();
                         exit;
-                    } catch(\Facebook\Exceptions\FacebookSDKException $e) {
+                    } catch (\Facebook\Exceptions\FacebookSDKException $e) {
                         echo 'Facebook SDK returned an error: ' . $e->getMessage();
                         exit;
                     }
                     $page = json_decode($response->getBody());
 
-                    if(isset($page->name) && is_numeric($page->id)) {
+                    if (isset($page->name) && is_numeric($page->id)) {
                         return ['status' => true];
                     }
                     break;
                 case 'Like':
                 case 'Comment':
-                    if((strpos($data['link'], 'photo') !== false) && strpos($data['link'], 'fbid') !== false) {
+                    if ((strpos($data['link'], 'photo') !== false) && strpos($data['link'], 'fbid') !== false) {
 
                     } elseif (strpos($data['link'], 'videos') !== false) {
 
@@ -221,7 +235,7 @@ class NewTaskController extends Controller
 //        if($media['id'] != 0) {
 //            return ['status' => true];
 //        } else {
-            return ['status' => false, 'message' => 'Неверная ссылка или не удалось получить данные из социальной сети или ссылка доступна только вам.'];
+        return ['status' => false, 'message' => 'Неверная ссылка или не удалось получить данные из социальной сети или ссылка доступна только вам.'];
 //        }
     }
 }

@@ -26,7 +26,7 @@
 </div>
 <ul class="list-group">
     <li class="list-group-item">
-        <p class="info">Ваш баланс {{ \App\User::getUserBalance() }} сум</p>
+        {{--<p class="info">Ваш баланс {{ \App\User::getUserBalance() }} сум</p>--}}
         <i class="far fa-credit-card"></i>
         <a href="/deposit">Пополнить</a>
     </li>

@@ -15,10 +15,10 @@ class BosslikeService
      * @param $amount
      * @return float|int
      */
-    public static function getTotalPoints($points, $amount)
+    /*public static function getTotalPoints($points, $amount)
     {
         return $points * $amount;
-    }
+    }*/
 
     /**
      * @param $serviceName
@@ -44,7 +44,7 @@ class BosslikeService
             'base_uri' => 'https://api.ok.ru/fb.do?'
         ]);
 
-        $params = 'application_key=' . \Config::get('services.odnoklassniki.client_public') . 'fields=name,pic50x50format=jsonmethod=users.getCurrentUser' .'01f393323dff5c95f28a63109a129d3d';
+        $params = 'application_key=' . \Config::get('services.odnoklassniki.client_public') . 'fields=name,pic50x50format=jsonmethod=users.getCurrentUser' . '01f393323dff5c95f28a63109a129d3d';
 
         $sig = md5($params);
 
