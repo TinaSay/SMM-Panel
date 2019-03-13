@@ -9,6 +9,7 @@ Route::group([
 
     ], function () {
         Route::get('profile', 'ProfileController@index')->name('profile');
+        Route::get('session/{currentUser}', 'SessionController@addToSession');
 
         Route::delete('ok-user/delete/{id}', 'OkController@delete')->name('ok-user.delete');
 

@@ -27,6 +27,7 @@ window.toastr = require('toastr');
 require('nestable2');
 window.mCustomScrollbar = require('malihu-custom-scrollbar-plugin');
 require('jquery-mousewheel');
+require('summernote');
 
 /**
  * The following block of code may be used to automatically register your

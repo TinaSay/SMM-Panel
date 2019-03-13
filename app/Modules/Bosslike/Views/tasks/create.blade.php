@@ -6,12 +6,11 @@
     @elseif((session()->has('fail')))
         <input type="hidden" id="fail-session" value="{{ session('fail') }}">
     @endif
-
+<div class="col-md-10 justify-content-center">
     <div class="row">
         <div class="col-md-12">
             <div class="alert alert-warning alert-dismissable text-center">
-                <p><i class="fas fa-exclamation-circle"></i> Внимание, обновление логики формы</p>
-                <p>Теперь при создании задания, Вы указываете количество баллов, которое получит исполнитель.<br>Цена
+                <p>При создании задания, Вы указываете количество баллов, которое получит исполнитель.<br>Цена
                     для Вас рассчитывается ниже.</p>
             </div>
         </div>
@@ -23,10 +22,10 @@
 
                 <div class="form-group">
                     <select
-                        class="selectpicker btn-group bootstrap-select dropup form-control{{ $errors->has('social') ? ' is-invalid' : '' }}"
-                        data-style="form-control"
-                        name="social"
-                        id="social">
+                            class="selectpicker btn-group bootstrap-select dropup form-control{{ $errors->has('social') ? ' is-invalid' : '' }}"
+                            data-style="form-control"
+                            name="social"
+                            id="social">
 
                         @foreach($socials as $social)
                             <option {{ (old('social') == $social->id) ? 'selected' : '' }} value="{{ $social->id }}">
@@ -41,12 +40,13 @@
             <div class="col-md-6">
                 <div class="form-group">
                     <select
-                        class="selectpicker btn-group bootstrap-select dropup form-control{{ $errors->has('service_id') ? ' is-invalid' : '' }}"
-                        data-style="form-control"
-                        name="service_id"
-                        id="service_id">
+                            class="selectpicker btn-group bootstrap-select dropup form-control{{ $errors->has('service_id') ? ' is-invalid' : '' }}"
+                            data-style="form-control"
+                            name="service_id"
+                            id="service_id">
                     </select>
-                    @if ($errors->has('service_id'))
+                    @if ($errors)
+                        <input type="hidden" value="{{old('service_id')}}" class="old_service_id">
                         <span class="invalid-feedback" role="alert">
                                 <strong>{{ $errors->first('service_id') }}</strong>
                             </span>
@@ -132,9 +132,13 @@
             <a class="btn btn-primary btn-gray" href="{{ route('tasks.my') }}">
                 Отмена
             </a>
-            <span class="totalPoints">0 </span> <span> баллов</span>
+          <span class="showPoints">
+              <i class="far fa-star"></i>
+              <span class="totalPoints">0 </span> <span> баллов</span>
+          </span>
         </div>
     </form>
+</div>
 
 @endsection
 @push('scripts')
@@ -156,18 +160,38 @@
                 totalPoints();
             });
 
+            function serviceName($name) {
+                if ($name == 'Subscribe') {
+                    return 'Вступить в группу';
+                } else if ($name == 'Like') {
+                    return 'Лайкнуть';
+                } else if ($name == 'Comment') {
+                    return 'Оставить комментарий';
+                } else if ($name == 'Share') {
+                    return 'Поделиться';
+                }
+                return $name;
+            }
+
             function loadCategories($socialId) {
                 $.ajax({
                     url: '/task/new/services/' + $socialId,
                     type: 'GET',
                     success: function (response) {
                         $('#service_id').empty();
+                        var _old = $('.old_service_id').val();
                         $.each(response, function (k, v) {
-                            $('#service_id').append('<option value="' + v.id + '">' + v.name + '</option>');
+                            $('#service_id').append('<option value="' + v.id + '" data-name="' + v.name + '">' + serviceName(v.name) + '</option>');
+                            if (_old) {
+                                if (v.id == _old) {
+                                    $('#service_id option[value=' + v.id + ']').attr('selected', true);
+                                }
+                            }
+
                         });
                     },
                     error: function () {
-                        console.log('error');
+
                     }
                 })
             }
@@ -186,7 +210,7 @@
 
             function loadSpeed($speed) {
                 var _social = $('#social option:selected').text();
-                var _service = $('#service_id option:selected').text();
+                var _service = $('#service_id option:selected').attr("data-name");
 
                 $.ajax({
                     url: '/task/speed/' + _social + '/' + _service,

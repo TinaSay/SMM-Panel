@@ -1,67 +1,67 @@
 {
-    "ok": {
-        "likes": {
+    "OK": {
+        "Like": {
             "slow": "1",
             "middle": "2",
             "fast": "3"
         },
-        "followers": {
+        "Subscribe": {
             "slow": "5",
             "middle": "6",
             "fast": "9"
         }
     },
-    "vk": {
-        "likes": {
+    "VK": {
+        "Like": {
             "slow": "1",
             "middle": "2",
             "fast": "3"
         },
-        "followers": {
+        "Subscribe": {
             "slow": "5",
             "middle": "6",
             "fast": "9"
         },
-        "comments": {
+        "Comment": {
             "slow": "2",
             "middle": "3",
             "fast": "4"
         }
     },
-    "instagram": {
-        "likes": {
+    "Instagram": {
+        "Like": {
             "slow": "1",
             "middle": "2",
             "fast": "3"
         },
-        "followers": {
+        "Subscribe": {
             "slow": "5",
             "middle": "6",
             "fast": "9"
         },
-        "comments": {
+        "Comment": {
             "slow": "2",
             "middle": "3",
             "fast": "4"
         }
     },
-    "facebook": {
-        "likes": {
+    "Facebook": {
+        "Like": {
             "slow": "1",
             "middle": "2",
             "fast": "3"
         },
-        "shares": {
+        "Share": {
             "slow": "5",
             "middle": "6",
             "fast": "9"
         },
-        "friends": {
+        "Subscribe": {
             "slow": "2",
             "middle": "3",
             "fast": "4"
         },
-        "comments": {
+        "Comment": {
             "slow": "2",
             "middle": "3",
             "fast": "4"

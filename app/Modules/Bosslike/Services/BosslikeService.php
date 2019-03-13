@@ -11,25 +11,19 @@ use GuzzleHttp;
 class BosslikeService
 {
     /**
-     * @param $points
-     * @param $amount
-     * @return float|int
-     */
-    /*public static function getTotalPoints($points, $amount)
-    {
-        return $points * $amount;
-    }*/
-
-    /**
      * @param $serviceName
      * @return string
      */
     public static function setServiceName($serviceName)
     {
-        if ($serviceName == 'Подписчики') {
+        if ($serviceName == 'Subscribe') {
             return 'Вступить в группу';
-        } elseif ($serviceName == 'Мне нравится') {
+        } elseif ($serviceName == 'Like') {
             return 'Лайкнуть';
+        } elseif ($serviceName == 'Comment') {
+            return 'Оставить комментарий';
+        } elseif ($serviceName == 'Share') {
+            return 'Поделиться';
         }
         return $serviceName;
     }

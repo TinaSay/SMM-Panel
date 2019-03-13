@@ -11,7 +11,7 @@
 <ul class="list-group blogger d-none">
     <li class="list-group-item">
         <i class="fas fa-tasks"></i>
-        <a href="/">Лента заданий</a>
+        <a href="/tasks/all">Лента заданий</a>
     </li>
     <li class="list-group-item">
         <i class="far fa-money-bill-alt"></i>

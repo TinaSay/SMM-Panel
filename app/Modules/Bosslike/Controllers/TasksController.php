@@ -11,6 +11,7 @@ use App\Modules\Bosslike\Models\TaskComments;
 use InstagramScraper\Instagram;
 use Config;
 use Illuminate\Http\Request;
+use GuzzleHttp\Client;
 /**
  * Class NewTaskController
  * @package App\Modules\Bosslike\Controllers
@@ -46,7 +47,7 @@ class TasksController extends Controller
                 $resp = $this->facebook($socialUser->client_name, $socialUser->client_id, $task->link, $task->post_id, $task->service->name, $socialUser->access_token, $comment);
                 break;
             case 'Telegram':
-
+                $resp = $this->telegram($task->link, $socialUser);
                 break;
             case 'OK':
 
@@ -67,7 +68,7 @@ class TasksController extends Controller
                 $instagram = Instagram::withCredentials(Task::INSTAGRAM_USERNAME, Task::INSTAGRAM_PASSWORD, '');
                 $instagram->login();
 
-                sleep(1);
+                sleep(2);
 
                 $likes = $instagram->getMediaLikesByCode($code, 50);
 
@@ -83,9 +84,9 @@ class TasksController extends Controller
                 $instagram = Instagram::withCredentials(Task::INSTAGRAM_USERNAME, Task::INSTAGRAM_PASSWORD, '');
                 $instagram->login();
 
-                sleep(1);
+                sleep(2);
 
-                $followers = $instagram->getFollowing($client_id, 30, 30, true);
+                $followers = $instagram->getFollowing($client_id, 50, 30, true);
 
                 foreach($followers as $follower) {
                     if($follower['username'] == $code) {
@@ -115,8 +116,6 @@ class TasksController extends Controller
             default:
                 break;
         }
-//        toast('example', 'title goes here');
-//        toast()->error('message', 'title');
         return response()->json(['status' => 'error', 'title' => 'Нажмите проверить.', 'message' => 'Выполнение не подтверждено, проверьте ещё раз.']);
     }
 
@@ -129,7 +128,6 @@ class TasksController extends Controller
             'app_secret' => $config['client_secret'],
             'default_graph_version' => 'v3.2',
         ]);
-//print $client_id . '_' . $postId;
         switch ($service) {
             case 'Like':
                 try {
@@ -151,14 +149,13 @@ class TasksController extends Controller
                     $response = $fb->get('/' . $client_id . '/likes/', $token);
                 } catch(\Facebook\Exceptions\FacebookResponseException $e) {
                     return response()->json(['status' => 'error', 'title' => 'Что то пошло не так.', 'message' => 'Попробуйте ещё раз.', 'error' => $e->getMessage()]);
-//                    exit;
                 } catch(\Facebook\Exceptions\FacebookSDKException $e) {
                     return response()->json(['status' => 'error', 'title' => 'Что то пошло не так.', 'message' => 'Попробуйте ещё раз.', 'error' => $e->getMessage()]);
-//                    exit;
                 }
                 $follows = json_decode($response->getBody());
+
                 foreach($follows->data as $follow) {
-                    if($follow->name == $post) {
+                    if($follow->id == $postId) {
                         return response()->json(['status' => 'success', 'message' => 'Задание выполнено', 'post' => $post, 'username' => $client_name]);
                     }
                 }
@@ -203,5 +200,27 @@ class TasksController extends Controller
                 break;
         }
         return response()->json(['status' => 'error', 'title' => 'Нажмите проверить.', 'message' => 'Выполнение не подтверждено, проверьте ещё раз.']);
+    }
+
+    public function telegram($link, $token)
+    {
+        $path = explode('t.me/', $link);
+        $client = new Client();
+        $url = 'https://api.telegram.org/bot';
+        $channel_admin = $client->request('POST', $url.env('TG_TOKEN').'/getChatMember',
+            [
+                'form_params' => [
+                    'chat_id' => '@'.$path[1],
+                    'user_id' => $token->client_id
+                ],
+                'http_errors' => false
+            ]);
+        $result = json_decode($channel_admin->getBody()->getContents());
+
+        if ($result->ok == true && $result->result->status == 'member') {
+            return response()->json(['status' => 'success', 'message' => 'Задание выполнено']);
+        } else {
+            return response()->json(['status' => 'error', 'title' => 'Нажмите проверить.', 'message' => 'Выполнение не подтверждено, проверьте ещё раз.']);
+        }
     }
 }
