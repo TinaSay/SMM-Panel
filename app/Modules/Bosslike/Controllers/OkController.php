@@ -3,6 +3,7 @@
 namespace App\Modules\Bosslike\Controllers;
 
 use App\Modules\Bosslike\Models\SocialUser;
+use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 
 /**

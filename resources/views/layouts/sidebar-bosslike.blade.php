@@ -1,4 +1,4 @@
-<ul class="list-group advertiser">
+<ul class="list-group advertiser @if(Session::get('usertype') == 'advertiser' or Session::get('usertype') == null)show @endif dnone">
     <li class="list-group-item">
         <i class="fas fa-plus"></i>
         <a href="/task/new">Добавить задание</a>
@@ -8,13 +8,13 @@
         <a href="/tasks/my">Мои задания</a>
     </li>
 </ul>
-<ul class="list-group blogger d-none">
+<ul class="list-group blogger @if(Session::get('usertype') == 'blogger')show @endif dnone">
     <li class="list-group-item">
         <i class="fas fa-tasks"></i>
-        <a href="/tasks/all">Лента заданий</a>
+        <a href="{{ route('tasks.all') }}">Лента заданий</a>
     </li>
     <li class="list-group-item">
         <i class="far fa-money-bill-alt"></i>
-        <a href="/">Мои сделки</a>
+        <a href="#">Мои сделки</a>
     </li>
 </ul>

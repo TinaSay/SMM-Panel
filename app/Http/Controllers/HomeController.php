@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\User;
+
 class HomeController extends Controller
 {
     /**
@@ -21,6 +23,13 @@ class HomeController extends Controller
      */
     public function index()
     {
-        return view('smmpro::catalog');
+        $userInfo = User::where('id', '=', \Auth::id())
+            ->where('first_name', '<>', null)
+            ->first();
+
+        if ($userInfo) {
+            return redirect()->route('task.create');
+        }
+        return redirect('info/');
     }
 }

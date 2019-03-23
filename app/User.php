@@ -42,6 +42,14 @@ use App\Exceptions\Handler;
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Modules\SmmPro\Models\Order[] $orders
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Modules\Bosslike\Models\SocialUser[] $socialUsers
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Modules\Bosslike\Models\Task[] $tasks
+ * @property string|null $first_name
+ * @property string|null $last_name
+ * @property int|null $gender
+ * @property string|null $avatar
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\User whereAvatar($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\User whereFirstName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\User whereGender($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\User whereLastName($value)
  */
 class User extends Authenticatable
 {
@@ -58,7 +66,7 @@ class User extends Authenticatable
      * @var array
      */
     protected $fillable = [
-        'id', 'billing_id', 'login', 'email', 'password', 'role_id', 'ip'
+        'id', 'billing_id', 'login', 'email', 'password', 'role_id', 'ip', 'avatar'
     ];
 
     /**

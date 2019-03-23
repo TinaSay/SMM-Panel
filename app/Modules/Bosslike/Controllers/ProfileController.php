@@ -4,13 +4,15 @@ namespace App\Modules\Bosslike\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Bosslike\Models\SocialUser;
-use GuzzleHttp\Client;
+use App\Modules\Bosslike\Models\Transactions;
+use Laravel\Socialite\Facades\Socialite;
+use App\Modules\Bosslike\Models\Social;
 use Illuminate\Http\Request;
 use Auth;
-use App\Modules\Bosslike\Models\Social;
 use Twitter;
 use Session;
 use Redirect;
+use App\Modules\Bosslike\Models\Task;
 use Illuminate\Support\Facades\Input;
 
 /**
@@ -23,8 +25,8 @@ class ProfileController extends Controller
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
     public function index()
-    {    
-        $localUser = SocialUser::where('social_id', '=', 1)
+    {
+        $ok = SocialUser::where('social_id', '=', 1)
             ->where('user_id', '=', \Auth::id())
             ->first();
 
@@ -32,10 +34,20 @@ class ProfileController extends Controller
         $twitter_token = SocialUser::where('social_id', $twitter->id)
             ->where('user_id', '=', \Auth::id())
             ->first();
+        $instagram = Social::where('name', 'Instagram')->first();
+        $instagram_token = SocialUser::where('social_id', $instagram->id)
+            ->where('user_id', '=', \Auth::id())
+            ->first();
+        $facebook = Social::where('name', 'Facebook')->first();
+        $facebook_token = SocialUser::where('social_id', $facebook->id)
+            ->where('user_id', '=', \Auth::id())
+            ->first();
 
         return view('bosslike::profile', [
-            'localUser' => $localUser,
-            'twitter' => $twitter_token
+            'ok' => $ok,
+            'twitter' => $twitter_token,
+            'instagram' => $instagram_token,
+            'facebook' => $facebook_token
         ]);
     }
 
@@ -110,13 +122,6 @@ class ProfileController extends Controller
 
             if (is_object($credentials) && !isset($credentials->error))
             {
-                // $credentials contains the Twitter user object with all the info about the user.
-                // Add here your own user logic, store profiles, create new users on your tables...you name it!
-                // Typically you'll want to store at least, user id, name and access tokens
-                // if you want to be able to call the API on behalf of your users.
-
-                // This is also the moment to log in your users if you're using Laravel's Auth class
-                // Auth::login($user) should do the trick.
 
                 Session::put('access_token', $tokenn);
                 $cred = Twitter::getCredentials();
@@ -145,5 +150,33 @@ class ProfileController extends Controller
 
             return Redirect::route('home')->with('error', 'Crab! Something went wrong while signing you up!');
         }
+    }
+
+    public function deAuth($id)
+    {
+        $socUser = SocialUser::where('social_id', $id)->where('user_id', \Auth::id())->delete();
+        return redirect()->route('profile');
+    }
+
+    public function checkProfile($id)
+    {
+        $user = \Auth::user();
+        $task = Task::find($id);
+        $socialUser = SocialUser::where('social_id', $task->service->social->id)
+            ->where('user_id', $user->id)->first();
+
+        if($socialUser) {
+            return response()->json(['status' => true]);
+        } else {
+//            toast()->warning('Подключите аккаунт соц.сети чтобы продолжить', 'Нет аккаунта' . $task->service->name);
+            return response()->json(['status' => false, 'social' => $task->service->social->name]);
+        }
+    }
+
+    public function history()
+    {
+        $trans = Transactions::where('user_id', Auth::id())->paginate(30);
+
+        return view('bosslike::profile.history', ['data' => $trans]);
     }
 }

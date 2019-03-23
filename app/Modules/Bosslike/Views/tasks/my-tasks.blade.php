@@ -10,89 +10,149 @@
     @if($tasks->isEmpty())
         <h3>Нет заданий</h3>
     @else
+        <div class="row justify-content-center">
+            @foreach($tasks as $task)
 
-        @foreach($tasks as $task)
-            <div class="card mb-3">
-                <div class="card-body">
-                    <a href="{{ $task->link }}" target="_blank">
-                        <h4><strong>{{ Bosslike::setServiceName($task->service->name) }}</strong> {{ $task->link }}
-                        </h4>
-                    </a>
-                    <div class="card-details">
-                        <span class="totalPoints-{{$task->id}}"></span> баллов (<span class="point{{$task->id}}"
-                                                                                      data-id="{{$task->id}}"></span>
-                        за задание)
-                        {{$task->created_at}}
-                    </div>
+                <div class="col-md-12 card mb-4">
+                    <div class="card-body">
+                        <div class="card-details my-tasks">
+                            <div class="d-flex justify-content-between">
+                                @if($task->service->name == 'Like')
+                                    <i class="left-icon far fa-heart"></i>
+                                @elseif($task->service->name == 'Subscribe')
+                                    <i class="left-icon far fa-user"></i>
+                                @elseif($task->service->name == 'Share')
+                                    <i class="left-icon fas fa-info-circle"></i>
+                                @else
+                                    <i class="left-icon fas fa-user-tie"></i>
+                                @endif
+                                <div class="img-holder"
+                                     style="background-image: url({{ (!empty($task->picture)) ? $task->picture : asset('images/picstar.png') }})">
+                                </div>
+                                <span class="soc-badge">
+                                    @if($task->service->social->name =='Facebook')
+                                        <i class="fab fa-facebook"></i>
+                                    @elseif($task->service->social->name =='Instagram')
+                                        <i class="fab fa-instagram"></i>
+                                    @else
+                                        <i class="fas fa-info-circle"></i>
+                                    @endif
+                                    </span>
+                                <div class="col-sm-5 col-md-4 col-lg-6">
+                                    <p>{{ Bosslike::setServiceName($task->service->name) }}
+                                        <a href="{{ $task->link }}" target="_blank">
+                                            @if($task->service->name=='Subscribe')
+                                                <span> на </span>  {{Bosslike::setTypeName($task->type) }}
+                                            @else
+                                                {{Bosslike::setTypeName($task->type) }}
+                                            @endif
+                                            {{$task->post_name}}
+                                        </a></p>
+                                    @if($tasksDone[$loop->index]<$task->amount)
+                                        <p>Запущено {{$task->created_at->format('d.m.y')}}
+                                            в {{$task->created_at->format('h.m')}}</p>
+                                    @else
+                                        <p>
+                                            Выполнено {{$task->tasks_done[$tasksDone[$loop->iteration]]->created_at->format('d.m.y')}}
+                                            в {{$task->created_at->format('h.m')}}</p>
+                                    @endif
+                                </div>
+                                <div class="col-sm-3 col-md-4 col-lg-3">
 
-                    {{--Button for edit--}}
-                    <a href="" class="btn btn-sm btn-muted edit" data-id="{{$task->id}}"
-                       onclick="openEditForm({{$task->id}})"><i
-                            class="fas fa-edit"></i>Редактировать</a>
-                    {{--End button for edit--}}
+                                    {{--remaining and total--}}
 
-                    {{--Button for delete--}}
-                    <form action="{{ route('task.delete',$task->id) }}" method="POST">
-                        @method('DELETE')
-                        @csrf
-                        <button class="btn btn-sm btn-outline-danger" data-toggle="tooltip"
-                                data-original-title="Удалить" onclick="return confirm('Удалить безвозвратно?')">
-                            <i class="fa fa-trash">Удалить</i>
-                        </button>
-                    </form>
-                    {{--End button for delete--}}
+                                    <span class="task-stat">
+                                        <span>
+                                            @if($tasksDone[$loop->index]<$task->amount)
+                                                <i class="fas fa-play-circle"></i>
+                                            @else
+                                                <i class="fas fa-check-circle" style="color:#3490dc"></i>
+                                            @endif
+                                            </span>
+                                        <span class="done">{{$tasksDone[$loop->index]}} </span> из
+                                        <span>{{$task->amount}}</span>
+                                    </span>
 
-                    {{--Form for editing--}}
-                    <form class="edit-form-{{$task->id}} d-none">
-                        <input type="hidden" value="{{ $task->id }}" class="task_id">
+                                    {{--Button for edit--}}
+                                    <a href="" class="btn btn-sm btn-outline-primary edit" data-toggle="tooltip"
+                                       title="Редактировать" data-id="{{$task->id}}"
+                                       onclick="openEditForm({{$task->id}})"><i
+                                                class="fas fa-edit"></i></a>
+                                    {{--End button for edit--}}
 
-                        <div class="form-group">
-                            <label for="">Ссылка</label>
-                            <input type="text" disabled="disabled" value="{{ $task->link }}" class="form-control"
-                                   name="link">
+                                    {{--Button for delete--}}
+                                    <form action="{{ route('task.delete',$task->id) }}" method="POST" class="d-inline">
+                                        {{--@method('DELETE')
+                                        @csrf--}}
+                                        {{ csrf_field() }}
+                                        {{--{{ method_field('DELETE') }}--}}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" data-toggle="tooltip"
+                                                title="Удалить"
+                                                onclick="return confirm('Удалить безвозвратно?')">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </form>
+                                    {{--End button for delete--}}
+                                </div>
+                            </div>
                         </div>
 
-                        <div class="form-group">
-                            <label for="points">Оплата исполнителю</label>
+                        {{--<div class="task-slaves" data-id="{{$task->id}}">
 
-                            <input id="points" type="number" name="points" value="{{ $task->points }}"
-                                   class="points form-control{{ $errors->has('points') ? ' is-invalid' : '' }}"
-                                   placeholder="кол.баллов" onfocus="this.placeholder = ''"
-                                   onblur="this.placeholder = 'кол.баллов'">
 
-                            @if ($errors->has('points'))
-                                <span class="invalid-feedback" role="alert">
+                        </div>--}}
+                        {{--Form for editing--}}
+                        <form class="edit-form-{{$task->id}} d-none">
+                            <input type="hidden" value="{{ $task->id }}" class="task_id">
+
+                            <div class="form-group">
+                                <label for="">Ссылка</label>
+                                <input type="text" disabled="disabled" value="{{ $task->link }}" class="form-control"
+                                       name="link">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="points">Оплата исполнителю</label>
+
+                                <input id="points" type="number" name="points" value="{{ $task->points }}"
+                                       class="points form-control{{ $errors->has('points') ? ' is-invalid' : '' }}"
+                                       placeholder="кол.баллов" onfocus="this.placeholder = ''"
+                                       onblur="this.placeholder = 'кол.баллов'">
+
+                                @if ($errors->has('points'))
+                                    <span class="invalid-feedback" role="alert">
                                 <strong>{{ $errors->first('points') }}</strong>
                             </span>
-                            @endif
-                        </div>
+                                @endif
+                            </div>
 
-                        <div class="form-group">
-                            <label for="amount">Количество выполнений</label>
+                            <div class="form-group">
+                                <label for="amount">Количество выполнений</label>
 
-                            <input id="amount" type="number" name="amount" value="{{ $task->amount }}"
-                                   class="amount form-control{{ $errors->has('amount') ? ' is-invalid' : '' }}">
+                                <input id="amount" type="number" name="amount" value="{{ $task->amount }}"
+                                       class="amount form-control{{ $errors->has('amount') ? ' is-invalid' : '' }}">
 
-                            @if ($errors->has('amount'))
-                                <span class="invalid-feedback" role="alert">
+                                @if ($errors->has('amount'))
+                                    <span class="invalid-feedback" role="alert">
                                 <strong>{{ $errors->first('amount') }}</strong>
                             </span>
-                            @endif
-                        </div>
-                        <div class="form-group">
-                            <button type="submit" class="btn btn-primary btn-lilac update">
-                                Сохранить
-                            </button>
-                            <a href="{{ route('tasks.my') }}" class="btn btn-primary btn-gray">
-                                Отмена
-                            </a>
-                        </div>
-                    </form>
-                    {{--End editing form--}}
-                </div>
+                                @endif
+                            </div>
+                            <div class="form-group">
+                                <button type="submit" class="btn btn-primary btn-lilac update">
+                                    Сохранить
+                                </button>
+                                <a href="{{ route('tasks.my') }}" class="btn btn-primary btn-gray">
+                                    Отмена
+                                </a>
+                            </div>
+                        </form>
+                        {{--End editing form--}}
+                    </div>
 
-            </div>
-        @endforeach
+                </div>
+            @endforeach
+        </div>
     @endif
 @endsection
 @push('functions')
@@ -100,11 +160,17 @@
         function openEditForm(id) {
             $('.edit-form-' + id).toggleClass('d-none');
         }
+
     </script>
 @endpush
 @push('scripts')
     <script>
         $(document).ready(function () {
+
+            var session = $('#success-session').val();
+            if (session != null) {
+                window.toastr.success(session);
+            }
 
             $('.edit').on('click', function (e) {
                 e.preventDefault();

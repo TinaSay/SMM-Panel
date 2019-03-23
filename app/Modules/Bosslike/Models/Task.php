@@ -34,17 +34,34 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $picture
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Modules\Bosslike\Models\Task wherePicture($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Modules\Bosslike\Models\Task whereType($value)
+ * @property string|null $post_id
+ * @property string|null $post_name
+ * @property int $done
+ * @property string|null $bosslike_id
+ * @property string|null $sng_amounts
+ * @property string|null $sng_points
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Modules\Bosslike\Models\TaskComments[] $comments
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Modules\Bosslike\Models\Task whereBosslikeId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Modules\Bosslike\Models\Task whereDone($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Modules\Bosslike\Models\Task wherePostId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Modules\Bosslike\Models\Task wherePostName($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Modules\Bosslike\Models\Task whereSngAmounts($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Modules\Bosslike\Models\Task whereSngPoints($value)
+ * @property-read \Illuminate\Database\Eloquent\Collection|\App\Modules\Bosslike\Models\TaskDone[] $tasks_done
  */
 class Task extends Model
 {
 
     const INSTAGRAM_USERNAME = 'mari__krasnova';
     const INSTAGRAM_PASSWORD = 'secretsecret1234';
+
+    const MONEY_IN = 'in';
+    const MONEY_OUT = 'out';
     /**
      * @var array
      */
     protected $fillable = [
-        'user_id', 'service_id', 'link', 'picture', 'type', 'points', 'amount'
+        'user_id', 'service_id', 'link', 'picture', 'type', 'points', 'amount', 'done', 'bosslike_id', 'sng_amounts', 'sng_points'
     ];
 
     /**
@@ -55,15 +72,24 @@ class Task extends Model
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
     public function comments()
     {
         return $this->hasMany(TaskComments::class, 'task_id', 'id');
     }
+
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function service()
     {
         return $this->belongsTo(Service::class);
+    }
+
+    public function tasks_done()
+    {
+        return $this->hasMany(TaskDone::class, 'task_id', 'id');
     }
 }

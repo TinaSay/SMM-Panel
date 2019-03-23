@@ -78,7 +78,7 @@ class OauthController extends Controller
             exit();
         }
 
-        return redirect('/');
+        return redirect()->route('home');
 
     }
 }

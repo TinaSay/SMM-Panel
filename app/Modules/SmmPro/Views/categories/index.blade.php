@@ -25,9 +25,9 @@
             </div>
         </div>
     @endif
-    <div class="mt-3">
-        <a href="{{ route('catalog') }}" class="btn btn-lilac">На главную</a>
-    </div>
+    {{--<div class="mt-3">
+        <a href="{{ route('task.new') }}" class="btn btn-lilac">На главную</a>
+    </div>--}}
 @endsection
 @push('scripts')
     <style>

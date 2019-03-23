@@ -1,70 +1,58 @@
 {
-    "OK": {
-        "Like": {
-            "slow": "1",
-            "middle": "2",
-            "fast": "3"
-        },
-        "Subscribe": {
-            "slow": "5",
-            "middle": "6",
-            "fast": "9"
-        }
-    },
-    "VK": {
-        "Like": {
-            "slow": "1",
-            "middle": "2",
-            "fast": "3"
-        },
-        "Subscribe": {
-            "slow": "5",
-            "middle": "6",
-            "fast": "9"
-        },
-        "Comment": {
-            "slow": "2",
-            "middle": "3",
-            "fast": "4"
-        }
-    },
     "Instagram": {
-        "Like": {
-            "slow": "1",
-            "middle": "2",
-            "fast": "3"
+        "like": {
+            "slow": "10",
+            "middle": "20",
+            "fast": "30"
         },
-        "Subscribe": {
-            "slow": "5",
-            "middle": "6",
-            "fast": "9"
+        "comment": {
+            "slow": "10",
+            "middle": "20",
+            "fast": "30"
         },
-        "Comment": {
-            "slow": "2",
-            "middle": "3",
-            "fast": "4"
+        "subscribe": {
+            "slow": "10",
+            "middle": "20",
+            "fast": "30"
         }
     },
     "Facebook": {
-        "Like": {
-            "slow": "1",
-            "middle": "2",
-            "fast": "3"
+        "like": {
+            "slow": "10",
+            "middle": "20",
+            "fast": "30"
         },
-        "Share": {
-            "slow": "5",
-            "middle": "6",
-            "fast": "9"
+        "comment": {
+            "slow": "10",
+            "middle": "20",
+            "fast": "30"
         },
-        "Subscribe": {
-            "slow": "2",
-            "middle": "3",
-            "fast": "4"
+        "subscribe": {
+            "slow": "10",
+            "middle": "20",
+            "fast": "30"
         },
-        "Comment": {
-            "slow": "2",
-            "middle": "3",
-            "fast": "4"
+        "share": {
+            "slow": "10",
+            "middle": "20",
+            "fast": "30"
+        }
+    },
+    "twitter": {
+        "like": {
+            "slow": "10",
+            "middle": "20",
+            "fast": "30"
+        },
+        "comment": {
+            "slow": "10",
+            "middle": "20",
+            "fast": "30"
+        },
+        "subscribe": {
+            "slow": "10",
+            "middle": "20",
+            "fast": "30"
         }
     }
 }

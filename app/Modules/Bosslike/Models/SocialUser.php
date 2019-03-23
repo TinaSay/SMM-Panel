@@ -30,12 +30,7 @@ use Illuminate\Database\Eloquent\Model;
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\Modules\Bosslike\Models\Social[] $socials
  * @property-read \Illuminate\Database\Eloquent\Collection|\App\User[] $users
  * @property-read \App\Modules\Bosslike\Models\Social $social
- * @property string $nickname
- * @property string $avatar
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Modules\Bosslike\Models\SocialUser whereAvatar($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Modules\Bosslike\Models\SocialUser whereNickname($value)
- * @property string $client_name
- * @property int $client_id
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Modules\Bosslike\Models\SocialUser whereClientId($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Modules\Bosslike\Models\SocialUser whereClientName($value)
  */

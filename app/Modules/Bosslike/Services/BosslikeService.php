@@ -17,15 +17,32 @@ class BosslikeService
     public static function setServiceName($serviceName)
     {
         if ($serviceName == 'Subscribe') {
-            return 'Вступить в группу';
+            return 'Подписаться';
         } elseif ($serviceName == 'Like') {
             return 'Лайкнуть';
         } elseif ($serviceName == 'Comment') {
-            return 'Оставить комментарий';
-        } elseif ($serviceName == 'Share') {
-            return 'Поделиться';
+            return 'Комментировать';
         }
         return $serviceName;
+    }
+
+    /**
+     * @param $type
+     * @return string
+     */
+    public static function setTypeName($type)
+    {
+        if ($type == 'post') {
+            return ' запись на стене';
+        } elseif ($type == 'photo') {
+            return ' фотографию';
+        } elseif ($type == 'video') {
+            return ' видео';
+        } elseif ($type == 'page') {
+            return ' страницу';
+        }
+        return $type;
+
     }
 
     /**

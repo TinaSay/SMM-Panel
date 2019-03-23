@@ -3,6 +3,7 @@
 namespace App\Modules\Bosslike\Controllers;
 
 use App\Http\Controllers\Controller;
+use Session;
 /**
  * Class SessionController
  * @package App\Modules\Bosslike\Controllers
@@ -15,9 +16,10 @@ class SessionController extends Controller
      */
     public function addToSession($currentUser)
     {
-        session(['current_user' =>$currentUser]);
-        $curUser = session('current_user');
-
-        return response()->json($curUser);
+        session(['usertype' => $currentUser]);
+//        session(['current_user' =>$currentUser]);
+//        $curUser = session('current_user');
+//
+        return response()->json(session('usertype'));
     }
 }

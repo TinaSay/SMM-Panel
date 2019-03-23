@@ -90,7 +90,7 @@
                     <button type="submit" class="btn btn-primary btn-lilac">
                         Создать
                     </button>
-                    <a class="btn btn-primary btn-gray" href="{{ route('categories.index') }}">
+                    <a class="btn btn-primary btn-gray" href="{{ route('tasks.all') }}">
                         Отмена
                     </a>
                 </div>

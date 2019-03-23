@@ -22,14 +22,14 @@
                         <td>{{ $user->login }}</td>
                         <td>{{ $user->email }}</td>
                         <td>{{ Smmpro::getRole($user->role_id) }}</td>
-                        <td>{{ Smmpro::formatDate($user->created_at) }}</td>
+                        <td>{{ $user->created_at }}</td>
                     </tr>
                 @endforeach
                 </tbody>
             </table>
         </div>
     @endif
-    <a href="{{ route('catalog') }}" class="btn btn-info btn-lilac">На главную</a>
+    <a href="{{ route('task.create') }}" class="btn btn-info btn-lilac">На главную</a>
 @endsection
 @push('scripts')
     <script>

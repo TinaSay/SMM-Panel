@@ -4,9 +4,9 @@ namespace App\Modules\Bosslike\Controllers;
 
 use App\Modules\Bosslike\Models\Task;
 use App\Http\Controllers\Controller;
+use App\Modules\Bosslike\Models\TaskDone;
 use App\Modules\Bosslike\Requests\TaskSaveRequest;
 use http\Env\Response;
-use GuzzleHttp\Client;
 
 /**
  * Class MyTasksController
@@ -19,10 +19,25 @@ class MyTasksController extends Controller
      */
     public function index()
     {
+        $tasksDone = [];
+        $tasksSlaves = [];
+        $tasks = Task::where('user_id', '=', \Auth::id())
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        foreach ($tasks as $task) {
+            $done = TaskDone::where('user_id', '=', \Auth::id())
+                ->where('task_id', '=', $task->id)
+                ->where('status', '=', TaskDone::DONE_TASK)
+                ->count();
+
+            array_push($tasksDone, $done);
+        }
+
+
         return view('bosslike::tasks.my-tasks', [
-            'tasks' => Task::where('user_id', '=', \Auth::id())
-                ->orderBy('created_at', 'desc')
-                ->get(),
+            'tasks' => $tasks,
+            'tasksDone' => $tasksDone,
         ]);
     }
 
@@ -58,8 +73,9 @@ class MyTasksController extends Controller
     public function delete($id)
     {
         $task = Task::findOrFail($id);
+        $task->tasks_done()->delete();
         $task->delete();
-        return redirect()->route('tasks.my');
+        return redirect()->route('tasks.my')->with('success', 'Удалено');
     }
 
 

@@ -8,10 +8,18 @@ use App\Modules\Bosslike\Models\SocialUser;
 use App\Modules\Bosslike\Models\Task;
 use App\Http\Controllers\Controller;
 use App\Modules\Bosslike\Models\TaskComments;
+use App\Modules\Bosslike\Services\BosslikeService;
+use App\User;
+use Composer\DependencyResolver\Transaction;
 use InstagramScraper\Instagram;
 use Config;
 use Illuminate\Http\Request;
 use GuzzleHttp\Client;
+use Mockery\Exception;
+use App\Modules\Bosslike\Models\TaskDone;
+use App\Modules\Bosslike\Models\Transactions;
+
+
 /**
  * Class NewTaskController
  * @package App\Modules\Bosslike\Controllers
@@ -22,15 +30,43 @@ class TasksController extends Controller
     public function index()
     {
         return view('bosslike::tasks.all', [
-            'tasks' => Task::all()
+            'tasks' => Task::whereHas('tasks_done', function ($q) {
+                $q->where('tasks_done.user_id', \Auth::id());
+            }, '=', 0)->where('user_id', '!=', \Auth::id())->get()
         ]);
+    }
+
+    public function show($id)
+    {
+        $user = \Auth::user();
+        $task = Task::find($id);
+        $socialUser = SocialUser::where('social_id', $task->service->social->id)
+            ->where('user_id', $user->id)->first();
+
+        if ($socialUser) {
+            return view('bosslike::tasks.show', ['link' => $task->link]);
+        } else {
+            return redirect('/profile');
+        }
+    }
+
+    public function hide($id)
+    {
+        $user = \Auth::user();
+
+        $done = new TaskDone;
+        $done->user_id = $user->id;
+        $done->task_id = $id;
+        $done->status = TaskDone::HIDDEN_TASK;
+        $done->save();
     }
 
     public function check($id, Request $request)
     {
         $user = \Auth::user();
         $task = Task::find($id);
-        if($request->has('comment')) {
+        $check = $request->input('check');
+        if ($request->has('comment')) {
             $comment = TaskComments::find($request->input('comment'));
             $comment = $comment->text;
         } else {
@@ -41,10 +77,10 @@ class TasksController extends Controller
 
         switch ($task->service->social->name) {
             case 'Instagram':
-                $resp = $this->instagram($socialUser->client_name, $socialUser->client_id, $task->link, $task->service->name, $comment);
+                $resp = $this->instagram($socialUser->client_name, $socialUser->client_id, $task->link, $task->service->name, $check, $comment);
                 break;
             case 'Facebook':
-                $resp = $this->facebook($socialUser->client_name, $socialUser->client_id, $task->link, $task->post_id, $task->service->name, $socialUser->access_token, $comment);
+                $resp = $this->facebook($socialUser->client_name, $socialUser->client_id, $task->link, $task->post_id, $task->service->name, $socialUser->access_token, $check, $comment);
                 break;
             case 'Telegram':
                 $resp = $this->telegram($task->link, $socialUser);
@@ -56,21 +92,84 @@ class TasksController extends Controller
                 break;
         }
 
+        if ($resp->original['status'] == 'success') {
+            $this->successTask($id, $task->points, $task->service->name, $task->type, $task->post_name);
+        }
+
         return response()->json($resp);
     }
 
-    public function instagram($client_name, $client_id, $post, $service, $randComment = null)
+    public function successTask($id, $points, $service, $type, $post_name)
     {
+        $user = \Auth::user();
+        $done = new TaskDone;
+        $done->user_id = $user->id;
+        $done->task_id = $id;
+        $done->status = TaskDone::DONE_TASK;
+        $done->save();
+
+        $client = new Client([
+            'base_uri' => 'https://billing.smm-pro.uz'
+        ]);
+
+        $client->request('POST', '/api/deposit', [
+            'headers' => [
+                'Accept' => 'application/json',
+                'Authorization' => 'Bearer ' . session('user_token')
+            ],
+            'form_params' => [
+                'amount' => $points,
+                'description' => 'Начисление денег пользователю ' . \Auth::user()->billing_id,
+                'client' => \Config::get('services.oauthConfig.keys.id'),
+            ]
+        ]);
+        User::getUserBalance();
+
+        $trans_action = 'Выполнил задание';
+        $trans_desc = BosslikeService::setServiceName($service);
+        if ($service == 'Subscribe') {
+            $trans_desc .= BosslikeService::setTypeName($type);
+        } else {
+            $trans_desc .= BosslikeService::setTypeName($type);
+        }
+
+        $trans_desc .= $post_name;
+
+        $trans = new Transactions;
+        $trans->create($user->id, $id, Task::MONEY_IN, $trans_action, $points, $trans_desc);
+    }
+
+
+
+    public function instagram($client_name, $client_id, $post, $service, $check, $randComment = null)
+    {
+        if($check == "false") {
+            $quantity = 50;
+            $title = 'Нажмите проверить.';
+            $status = 'warning';
+        } else {
+            $quantity = 100;
+            $title = 'Проверьте соответствие подключенного профиля.';
+            $status = 'error';
+        }
+
         switch ($service) {
             case 'Like':
                 $code = str_replace('/', '',str_replace('https://www.instagram.com/p/', '', $post));
-
-                $instagram = Instagram::withCredentials(Task::INSTAGRAM_USERNAME, Task::INSTAGRAM_PASSWORD, '');
+//                $ip = "fe80::9def:4e76:6600:" . rand( 500, 9999 );
+//                Instagram::curlOpts( [ CURLOPT_INTERFACE => $ip, CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V6 ] );
+                $instagram = Instagram::withCredentials(Task::INSTAGRAM_USERNAME, Task::INSTAGRAM_PASSWORD, __DIR__ .'/cache');
+//                Instagram::setProxy([
+//                    'address' => '68.15.42.194',
+//                    'port'    => '46682',
+//                    'tunnel'  => true,
+//                    'timeout' => 30,
+//                ]);
                 $instagram->login();
 
-                sleep(2);
+                sleep(1);
 
-                $likes = $instagram->getMediaLikesByCode($code, 50);
+                $likes = $instagram->getMediaLikesByCode($code, $quantity);
 
                 foreach ($likes as $like) {
                     if($like->getUsername() == $client_name) {
@@ -81,12 +180,12 @@ class TasksController extends Controller
                 break;
             case 'Subscribe':
                 $code = str_replace('/', '',str_replace('https://www.instagram.com/', '', $post));
-                $instagram = Instagram::withCredentials(Task::INSTAGRAM_USERNAME, Task::INSTAGRAM_PASSWORD, '');
+                $instagram = Instagram::withCredentials(Task::INSTAGRAM_USERNAME, Task::INSTAGRAM_PASSWORD, __DIR__ .'/cache');
                 $instagram->login();
 
-                sleep(2);
+                sleep(1);
 
-                $followers = $instagram->getFollowing($client_id, 50, 30, true);
+                $followers = $instagram->getFollowing($client_id, $quantity, 30, true);
 
                 foreach($followers as $follower) {
                     if($follower['username'] == $code) {
@@ -98,7 +197,7 @@ class TasksController extends Controller
             case 'Comment':
                 $code = str_replace('/', '',str_replace('https://www.instagram.com/p/', '', $post));
                 $instagram = new Instagram();
-                $comments = $instagram->getMediaCommentsByCode($code, 50);
+                $comments = $instagram->getMediaCommentsByCode($code, $quantity);
 
                 foreach ($comments as $comment) {
                     if($comment->getOwner()->getUsername() == $client_name) {
@@ -116,12 +215,24 @@ class TasksController extends Controller
             default:
                 break;
         }
-        return response()->json(['status' => 'error', 'title' => 'Нажмите проверить.', 'message' => 'Выполнение не подтверждено, проверьте ещё раз.']);
+        return response()->json([
+            'status' => $status,
+            'title' => $title,
+            'message' => 'Выполнение не подтверждено, проверьте ещё раз.'
+        ]);
     }
 
-    public function facebook($client_name, $client_id, $post, $postId, $service, $token, $randComment = null)
+    public function facebook($client_name, $client_id, $post, $postId, $service, $token, $check, $randComment = null)
     {
         $config = Config::get('services.facebook');
+
+        if($check == "false") {
+            $title = 'Нажмите проверить.';
+            $status = 'warning';
+        } else {
+            $title = 'Проверьте соответствие подключенного профиля.';
+            $status = 'error';
+        }
 
         $fb = new \Facebook\Facebook([
             'app_id' => $config['client_id'],
@@ -129,6 +240,7 @@ class TasksController extends Controller
             'default_graph_version' => 'v3.2',
         ]);
         switch ($service) {
+//        $twoMonthToken = $client->getLongLivedAccessToken($twoHourToken);
             case 'Like':
                 try {
                     $response = $fb->get('/' . $client_id . '_' . $postId . '/likes/', $token);
@@ -199,7 +311,11 @@ class TasksController extends Controller
             default:
                 break;
         }
-        return response()->json(['status' => 'error', 'title' => 'Нажмите проверить.', 'message' => 'Выполнение не подтверждено, проверьте ещё раз.']);
+        return response()->json([
+            'status' => $status,
+            'title' => $title,
+            'message' => 'Выполнение не подтверждено, проверьте ещё раз.'
+        ]);
     }
 
     public function telegram($link, $token)
