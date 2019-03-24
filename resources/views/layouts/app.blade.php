@@ -127,7 +127,7 @@
                                     <a href="#" class="dropdown-toggle" data-toggle="dropdown"
                                        aria-expanded="true">
                                         <div class="img-holder img-thumbnail border-0 ava"
-                                             style="background-image: url({{ (!empty(Auth::user()->avatar)) ? asset('/storage/uploads/'.Auth::user()->avatar) : asset('images/ava.png') }})">
+                                             style="background-image: url({{ (!empty(Auth::user()->avatar)) ? asset('uploads/'.Auth::user()->avatar) : asset('images/ava.png') }})">
                                         </div>
 
                                     </a>

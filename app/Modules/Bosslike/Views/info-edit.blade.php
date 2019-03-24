@@ -59,7 +59,7 @@
                             <div class="form-group">
                                 <label for="avatar">Аватар</label>
                                 <div class="col-md-3">
-                                    <img src="{{ asset('/storage/uploads/'.$user->avatar) }}" alt=""
+                                    <img src="{{ asset('uploads/'.$user->avatar) }}" alt=""
                                          class="img-thumbnail">
                                 </div>
                             </div>

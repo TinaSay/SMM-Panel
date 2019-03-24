@@ -44,9 +44,6 @@ Route::group([
         Route::post('info/update/{id}', 'MyInfoController@update')->name('info.update');
 
         Route::get('tasks-done', 'MyTasksController@countDone');
-        Route::get('storage-link',function(){
-            Artisan::call('storage:link');
-        });
 
     });
 });

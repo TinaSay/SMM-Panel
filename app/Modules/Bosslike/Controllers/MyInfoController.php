@@ -51,7 +51,8 @@ class MyInfoController extends Controller
         if ($file) {
             $ext = $file->getClientOriginalExtension();
             $filename = 'avatar' . time() . '.' . $ext;
-            Storage::putFileAs('public/uploads/', $file, $filename);
+            $file->storeAs('uploads', $filename);
+            /*Storage::putFileAs('public/uploads/', $file, $filename);*/
             $user->avatar = $filename;
 
         } else {
@@ -91,7 +92,8 @@ class MyInfoController extends Controller
 
             $ext = $file->getClientOriginalExtension();
             $filename = 'avatar' . time() . '.' . $ext;
-            Storage::putFileAs('public/uploads/', $file, $filename);
+            $file->storeAs('uploads', $filename);
+
             $user->avatar = $filename;
         }
 

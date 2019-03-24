@@ -7,14 +7,17 @@ use App\Modules\Bosslike\Models\Social;
 use App\Modules\Bosslike\Models\SocialUser;
 use App\Modules\Bosslike\Models\Task;
 use App\Http\Controllers\Controller;
+use App\Modules\Bosslike\Models\TaskComments;
 use App\Modules\Bosslike\Requests\TaskSaveRequest;
 use App\Modules\Bosslike\Services\BosslikeService;
 //use PHPUnit\Framework\Exception;
 use App\User;
 Use Exception;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Input;
 use GuzzleHttp\Client;
 use App\Modules\Bosslike\Models\Transactions;
+use Illuminate\Support\Facades\Validator;
 
 /**
  * Class NewTaskController
@@ -65,7 +68,8 @@ class NewTaskController extends Controller
 
             $cost = $task->points * $task->amount;
 
-            $affordable = User::getUserBalance()/100 - $cost;
+            /*$affordable = User::getUserBalance()/100 - $cost;*/
+            $affordable = 10000;
             if ($affordable < 0) {
                 toast()->error('У вас не хватает средств!');
                 return back()->with(['socials' => Social::all()])->withInput(Input::all());
@@ -98,6 +102,20 @@ class NewTaskController extends Controller
 
                 $trans = new Transactions;
                 $trans->create(\Auth::id(), $task->id, Task::MONEY_OUT, $trans_action, $task->points, $trans_desc);
+
+                $counter = $request->input('counter');
+                for ($i = 1; $i < $counter; $i++) {
+
+                    $taskComment = new TaskComments();
+                    $taskComment->task_id = $task->id;
+                    $taskComment->text = $request->input('comment_text' . $i);
+                    if ($taskComment->text == null) {
+                        toast()->error('error', 'Введите комментарии!');
+                        return back()->with(['socials' => Social::all()])->withInput(Input::all());
+                    }
+                    $taskComment->save();
+
+                }
             }
 
 
@@ -295,7 +313,7 @@ class NewTaskController extends Controller
                 } elseif (strpos($data['link'], 'posts') !== false) {
                     $postId = str_replace('/', '', substr($data['link'], strpos($data['link'], 'posts/') + 6));
                     $requestUrl = '/' . $client_id . '_' . $postId;
-                } elseif(strpos($data['link'], 'photos') !== false) {
+                } elseif (strpos($data['link'], 'photos') !== false) {
                     $postType = 'photo';
                     $part = substr($data['link'], strpos($data['link'], 'photos/'));
                     $pos = explode("/", $part, 4);

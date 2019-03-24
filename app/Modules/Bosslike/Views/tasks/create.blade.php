@@ -183,9 +183,14 @@
                                     <a href="#" class="remove-comment d-none">
                                         <i class="fas fa-trash"></i>
                                     </a></h5>
-                                <textarea name=""
+                                <textarea name="comment_text1"
                                           placeholder="Напишите комментарий, который должен оставить пользователь"
                                           class="form-control" rows="2" maxlength="150"></textarea>
+                                @if(session()->has('error'))
+                                    <h2>nonono</h2>
+                                    @endif
+                                <input type="hidden" value="" class="counter" name="counter">
+
                             </div>
                         </div>
 
@@ -223,6 +228,12 @@
                 window.toastr.success(session);
             }
 
+            $('.submit-task').on('click', function () {
+                var commentsCounter = $('.comment-counter').text();
+                $('.counter').val(commentsCounter);
+
+            });
+
             var $speed = 1;
             totalPoints();
 
@@ -230,12 +241,16 @@
             $('.comment-number').text(1);
             $('.comment-counter').text(1);
 
+
+            var x=1;
             $('.add-comment-btn').on('click', function () {
-                $('.comment-input').last().clone().addClass('next').appendTo($('.comment-block')).find('textarea').val('');
+
+                $('.comment-input').last().clone().addClass('next').appendTo($('.comment-block')).find('textarea').val('').attr('name','comment_text'+(x+1));
                 $('.next').find('.remove-comment').removeClass('d-none');
                 $('.comment-number, .comment-counter').text(function (index) {
                     return (index + 1);
                 });
+                x++;
             });
 
             $(document).on('click', '.remove-comment i', function (e) {

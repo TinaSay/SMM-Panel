@@ -29,7 +29,7 @@ class TaskComments extends Model
         'task_id', 'text', 'created_at'
     ];
 
-    public function tasks()
+    public function task()
     {
         return $this->belongsTo(Task::class);
     }
