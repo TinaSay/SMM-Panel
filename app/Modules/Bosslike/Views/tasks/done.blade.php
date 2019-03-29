@@ -1,8 +1,14 @@
 @extends('layouts.app')
-@section('title','Мои задания')
+@section('title','Мои сделки')
 @section('content')
+    @if(session()->has('success'))
+        <input type="hidden" id="success-session" value="{{ session('success') }}">
+    @elseif((session()->has('fail')))
+        <input type="hidden" id="fail-session" value="{{ session('fail') }}">
+    @endif
+
     @if($tasks->isEmpty())
-        <h3>Нет заданий</h3>
+        <h3>Нет выполненных заданий</h3>
     @else
         <div class="row justify-content-center">
             @foreach($tasks as $task)
@@ -11,27 +17,11 @@
                     <div class="card-body">
                         <div class="card-details my-tasks">
                             <div class="d-flex justify-content-between">
-                                @if($task->service->name == 'Like')
-                                    <i class="left-icon far fa-heart"></i>
-                                @elseif($task->service->name == 'Subscribe')
-                                    <i class="left-icon far fa-user"></i>
-                                @elseif($task->service->name == 'Share')
-                                    <i class="left-icon fas fa-info-circle"></i>
-                                @else
-                                    <i class="left-icon fas fa-user-tie"></i>
-                                @endif
+
                                 <div class="img-holder"
                                      style="background-image: url({{ (!empty($task->picture)) ? $task->picture : asset('images/picstar.png') }})">
                                 </div>
-                                <span class="soc-badge">
-                                    @if($task->service->social->name =='Facebook')
-                                        <i class="fab fa-facebook"></i>
-                                    @elseif($task->service->social->name =='Instagram')
-                                        <i class="fab fa-instagram"></i>
-                                    @else
-                                        <i class="fas fa-info-circle"></i>
-                                    @endif
-                                    </span>
+
                                 <div class="col-sm-5 col-md-4 col-lg-6">
                                     <p>{{ Bosslike::setServiceName($task->service->name) }}
                                         <a href="{{ $task->link }}" target="_blank">
@@ -53,7 +43,7 @@
                                 </div>
                                 <div class="col-sm-3 col-md-4 col-lg-3">
 
-                                    {{--remaining and total--}}
+                                    remaining and total
 
                                     <span class="task-stat">
                                         <span>
@@ -67,37 +57,35 @@
                                         <span>{{$task->amount}}</span>
                                     </span>
 
-                                    {{--Button for edit--}}
+                                    Button for edit
                                     <a href="" class="btn btn-sm btn-outline-primary edit" data-toggle="tooltip"
                                        title="Редактировать" data-id="{{$task->id}}"
                                        onclick="openEditForm({{$task->id}})"><i
-                                            class="fas fa-edit"></i></a>
-                                    {{--End button for edit--}}
+                                                class="fas fa-edit"></i></a>
+                                    End button for edit
 
-                                    {{--Button for delete--}}
+                                    Button for delete
                                     <form action="{{ route('task.delete',$task->id) }}" method="POST" class="d-inline">
-                                        {{--@method('DELETE')
-                                        @csrf--}}
+                                        @method('DELETE')
+                                        @csrf
                                         {{ csrf_field() }}
-                                        {{--{{ method_field('DELETE') }}--}}
-                                        <button type="submit" class="btn btn-sm btn-outline-danger"
-                                                data-toggle="tooltip"
+                                        {{ method_field('DELETE') }}
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" data-toggle="tooltip"
                                                 title="Удалить"
                                                 onclick="return confirm('Удалить безвозвратно?')">
                                             <i class="fa fa-trash"></i>
                                         </button>
                                     </form>
-                                    {{--End button for delete--}}
+                                    End button for delete
                                 </div>
                             </div>
                         </div>
 
-
-                        {{--{{var_dump($task->id)}}
-                        {{dd($task->comments[0]->text)}}--}}
+                        <div class="task-slaves" data-id="{{$task->id}}">
 
 
-                        {{--Form for editing--}}
+                        </div>
+                        Form for editing
                         <form class="edit-form-{{$task->id}} d-none">
                             <input type="hidden" value="{{ $task->id }}" class="task_id">
 
@@ -110,7 +98,7 @@
                             <div class="form-group">
                                 <label for="points">Оплата исполнителю</label>
 
-                                <input id="points" type="number" name="points" value="{{ $task->points }}" min="10"
+                                <input id="points" type="number" name="points" value="{{ $task->points }}"
                                        class="points form-control{{ $errors->has('points') ? ' is-invalid' : '' }}"
                                        placeholder="кол.баллов" onfocus="this.placeholder = ''"
                                        onblur="this.placeholder = 'кол.баллов'">
@@ -125,7 +113,7 @@
                             <div class="form-group">
                                 <label for="amount">Количество выполнений</label>
 
-                                <input id="amount" type="number" name="amount" min="1" value="{{ $task->amount }}"
+                                <input id="amount" type="number" name="amount" value="{{ $task->amount }}"
                                        class="amount form-control{{ $errors->has('amount') ? ' is-invalid' : '' }}">
 
                                 @if ($errors->has('amount'))
@@ -134,39 +122,6 @@
                             </span>
                                 @endif
                             </div>
-
-                            @if(!$task->comments->isEmpty())
-                                <p>Комментарии, которые будут добавлять пользователи. Если вам нужны любые комментарии -
-                                    просто оставьте эти поля пустыми.
-                                </p>
-                                @foreach($task->comments as $comment)
-
-                                    <div class="form-group">
-                                        <div class="comment-block">
-                                            <div class="comment-input">
-
-                                                <div class="comment-input-body">
-
-                                                    <h5>Комментарий <span
-                                                            class="comment-number">{{$loop->iteration}}</span>
-                                                        <a href="#" class="remove-comment d-none">
-                                                            <i class="fas fa-trash"></i>
-                                                        </a></h5>
-                                                    <textarea name="comment_text[]"
-                                                              class="form-control comment_text" rows="2"
-                                                              maxlength="150">{{$comment->text}}</textarea>
-                                                    <input type="hidden" value="" class="counter" name="counter">
-
-                                                </div>
-                                            </div>
-
-                                        </div>
-                                    </div>
-                                @endforeach
-
-                            @endif
-
-
                             <div class="form-group">
                                 <button type="submit" class="btn btn-primary btn-lilac update">
                                     Сохранить
@@ -176,7 +131,7 @@
                                 </a>
                             </div>
                         </form>
-                        {{--End editing form--}}
+                        End editing form
                     </div>
 
                 </div>
@@ -196,6 +151,11 @@
     <script>
         $(document).ready(function () {
 
+            var session = $('#success-session').val();
+            if (session != null) {
+                window.toastr.success(session);
+            }
+
             $('.edit').on('click', function (e) {
                 e.preventDefault();
             });
@@ -207,12 +167,6 @@
                 var _task = _form.find('.task_id').val();
                 var _points = _form.find('.points').val();
                 var _amount = _form.find('.amount').val();
-                var _comments = _form.find('[name="comment_text[]"]');
-                var _commentsArray = [];
-
-                $.each(_comments, function (k, v) {
-                    _commentsArray.push($(this).val());
-                });
 
                 $.ajax({
                     url: '/task/update/' + _task,
@@ -221,12 +175,12 @@
                         _token: '{!! csrf_token() !!}',
                         'points': _points,
                         'amount': _amount,
-                        'comment_text': _commentsArray,
                     },
                     dataType: 'JSON',
                     success: function (response) {
                         _form.toggleClass('d-none');
                         total(_points, _amount, _task);
+                        point(_points);
 
                         if (response.status == 1) {
                             window.toastr.success(response.message);
@@ -235,7 +189,7 @@
                         }
                     },
                     error: function () {
-                        window.toastr.error('Введите верные данные');
+                        window.toastr.error('Ошибка');
                     }
                 });
                 e.preventDefault();

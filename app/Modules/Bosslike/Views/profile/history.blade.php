@@ -1,27 +1,21 @@
 @extends('layouts.app')
 @section('title','История')
 @section('content')
-    @if(session()->has('success'))
-        <input type="hidden" id="success-session" value="{{ session('success') }}">
-    @elseif((session()->has('fail')))
-        <input type="hidden" id="fail-session" value="{{ session('fail') }}">
-    @endif
-
     @if($data->isEmpty())
         <h3>История пуста</h3>
     @else
 
     <div class="row justify-content-left">
-        <div class="col-12 col-sm-12 col-md-12">
+        <div class="col-12 col-sm-12 col-md-12 table-responsive">
 
-            <table id="transaction_history">
+            <table id="transaction_history" class="table table-hover">
                 <thead>
-                    <tr>
-                        <td>Дата</td>
-                        <td>Тип</td>
-                        <td>Операция</td>
-                        <td>Описание</td>
-                        <td>Сум</td>
+                    <tr class="table-info">
+                        <th>Дата</th>
+                        <th>Тип</th>
+                        <th>Операция</th>
+                        <th>Описание</th>
+                        <th>Сум</th>
                     </tr>
                 </thead>
                 <tbody>

@@ -2,6 +2,7 @@
 
 namespace App\Modules\Bosslike\Controllers;
 
+use App\Helpers\GuzzleClient;
 use App\Modules\Bosslike\Models\Service;
 use App\Modules\Bosslike\Models\Social;
 use App\Modules\Bosslike\Models\SocialUser;
@@ -10,14 +11,11 @@ use App\Http\Controllers\Controller;
 use App\Modules\Bosslike\Models\TaskComments;
 use App\Modules\Bosslike\Requests\TaskSaveRequest;
 use App\Modules\Bosslike\Services\BosslikeService;
-//use PHPUnit\Framework\Exception;
-use App\User;
 Use Exception;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Input;
 use GuzzleHttp\Client;
 use App\Modules\Bosslike\Models\Transactions;
-use Illuminate\Support\Facades\Validator;
+use Bosslike;
 
 /**
  * Class NewTaskController
@@ -26,33 +24,64 @@ use Illuminate\Support\Facades\Validator;
 class NewTaskController extends Controller
 {
     /**
+     * @var GuzzleClient
+     */
+    protected $guzzle;
+
+    /**
+     * NewTaskController constructor.
+     * @param GuzzleClient $client
+     */
+    public function __construct(GuzzleClient $client)
+    {
+        $this->guzzle = $client;
+    }
+
+    /**
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
     public function create()
     {
         return view('bosslike::tasks.create', [
-            'socials' => Social::all()
+            'socials' => Social::all()->sortBy('name')
         ]);
     }
 
-    public function getTaskSpeed($social, $service)
+    /**
+     * @param $social_id
+     * @return bool
+     */
+    public function checkUserSocial($social_id)
     {
-        $jsonString = file_get_contents(asset('js/points.json'));
-        $soc = trim($social);
-        $ser = trim($service);
-        $data = json_decode($jsonString, true);
+        $user = \Auth::user();
+        $socialUser = SocialUser::where('social_id', $social_id)
+            ->where('user_id', $user->id)->first();
 
-        return response()->json($data[$soc][$ser]);
+        if ($socialUser) {
+            return true;
+        } else {
+            $social = Social::find($social_id);
+            toast()->warning('Подключите аккаунт ' . $social->name . ', чтобы продолжить.', 'Нет аккаунта ' . $social->name);
+            return false;
+        }
     }
 
     /**
      * @param TaskSaveRequest $request
      * @return \Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector
+     * @throws \Facebook\Exceptions\FacebookSDKException
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function store(TaskSaveRequest $request)
     {
         $data = $request->only('link', 'service_id', 'social');
+
+        $checkUserSocial = $this->checkUserSocial($data['social']);
+
+        if (!$checkUserSocial) {
+            return redirect('/profile');
+        }
+
         $validator = $this->validatePost($data);
         if ($validator['status']) {
             $task = new Task();
@@ -68,27 +97,16 @@ class NewTaskController extends Controller
 
             $cost = $task->points * $task->amount;
 
-            /*$affordable = User::getUserBalance()/100 - $cost;*/
-            $affordable = 10000;
+            //TODO: change back on live
+            $affordable = $this->guzzle->getUserBalance() / 100 - $cost;
+            /*$affordable = 1000;*/
             if ($affordable < 0) {
                 toast()->error('У вас не хватает средств!');
                 return back()->with(['socials' => Social::all()])->withInput(Input::all());
             } else {
                 $task->save();
 
-                $client = new Client(['base_uri' => 'https://billing.smm-pro.uz']);
-
-                $client->request('POST', '/api/charge', [
-                    'headers' => [
-                        'Accept' => 'application/json',
-                        'Authorization' => 'Bearer ' . session('user_token')
-                    ],
-                    'form_params' => [
-                        'amount' => $cost,
-                        'description' => 'Оплата от пользователя ' . \Auth::user()->billing_id,
-                        'client' => \Config::get('services.oauthConfig.keys.id'),
-                    ]
-                ]);
+                $this->guzzle->chargeClient($cost);
 
                 $trans_action = 'Создание задания';
                 $trans_desc = BosslikeService::setServiceName($task->service->name);
@@ -103,21 +121,18 @@ class NewTaskController extends Controller
                 $trans = new Transactions;
                 $trans->create(\Auth::id(), $task->id, Task::MONEY_OUT, $trans_action, $task->points, $trans_desc);
 
-                $counter = $request->input('counter');
-                for ($i = 1; $i < $counter; $i++) {
+                if (filled($request->input('comment_text'))) {
+                    $commentsArray = $request->input('comment_text');
 
-                    $taskComment = new TaskComments();
-                    $taskComment->task_id = $task->id;
-                    $taskComment->text = $request->input('comment_text' . $i);
-                    if ($taskComment->text == null) {
-                        toast()->error('error', 'Введите комментарии!');
-                        return back()->with(['socials' => Social::all()])->withInput(Input::all());
+                    foreach ($commentsArray as $comment) {
+                        $taskComment = new TaskComments();
+                        $taskComment->task_id = $task->id;
+                        $taskComment->text = $comment;
+                        $taskComment->save();
                     }
-                    $taskComment->save();
-
                 }
-            }
 
+            }
 
             if ($request->priority != 'uzb') {
                 $result = $this->toBosslike($task, $request->all());
@@ -136,6 +151,12 @@ class NewTaskController extends Controller
 
     }
 
+    /**
+     * @param $task
+     * @param $request
+     * @return bool
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
     public function toBosslike($task, $request)
     {
 
@@ -220,6 +241,12 @@ class NewTaskController extends Controller
         return response()->json($services);
     }
 
+    /**
+     * @param $data
+     * @return array
+     * @throws \Facebook\Exceptions\FacebookSDKException
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
     public function validatePost($data)
     {
         $service = Service::find($data['service_id']);
@@ -243,6 +270,11 @@ class NewTaskController extends Controller
         return $result;
     }
 
+    /**
+     * @param $data
+     * @param $service
+     * @return array
+     */
     public function validateInstagram($data, $service)
     {
         $instagram = new \InstagramScraper\Instagram();
@@ -275,6 +307,15 @@ class NewTaskController extends Controller
         }
     }
 
+    /**
+     * @param $data
+     * @param $service
+     * @param $token
+     * @param $client_id
+     * @param $avatar
+     * @return array
+     * @throws \Facebook\Exceptions\FacebookSDKException
+     */
     public function validateFacebook($data, $service, $token, $client_id, $avatar)
     {
         $config = \Config::get('services.facebook');
@@ -288,7 +329,7 @@ class NewTaskController extends Controller
             case 'Subscribe':
                 try {
                     $url = explode("?", $data['link'], 2);
-                    $response = $fb->get('/' . $url[0] . '?fields=picture,name', $token);
+                    $response = $fb->get('/' . $url[0] . '?fields=picture,name', $config['client_id'] . '|' . $config['client_secret']);
                 } catch (\Facebook\Exceptions\FacebookResponseException $e) {
                     return ['status' => false, 'title' => 'Что то пошло не так.', 'message' => 'Попробуйте ещё раз.', 'error' => $e->getMessage()];
                 } catch (\Facebook\Exceptions\FacebookSDKException $e) {
@@ -324,7 +365,7 @@ class NewTaskController extends Controller
                 $newLink = str_replace('www', 'm', $data['link']);
 
                 try {
-                    $response = $fb->get($requestUrl, $token);
+                    $response = $fb->get($requestUrl, $config['client_id'] . '|' . $config['client_secret']);
                 } catch (\Facebook\Exceptions\FacebookResponseException $e) {
                     return ['status' => false, 'title' => 'Что то пошло не так.', 'message' => 'Попробуйте ещё раз.', 'error' => $e->getMessage()];
                 } catch (\Facebook\Exceptions\FacebookSDKException $e) {
@@ -345,6 +386,11 @@ class NewTaskController extends Controller
         return ['status' => false, 'message' => 'Неверная ссылка или не удалось получить данные из социальной сети или ссылка доступна только вам.'];
     }
 
+    /**
+     * @param $data
+     * @return array
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
     public function validateChannel($data)
     {
         $path = explode('t.me/', $data['link']);

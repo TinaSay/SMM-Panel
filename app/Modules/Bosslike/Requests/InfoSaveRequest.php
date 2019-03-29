@@ -29,9 +29,7 @@ class InfoSaveRequest extends FormRequest
     {
         return [
             'first_name' => 'required|string|min:3|max:200',
-            'last_name' => 'required|string|min:3|max:200',
             'gender' => 'required',
-            'avatar' => 'nullable|image|max:10000|mimes:jpeg,png,gif',
         ];
 
     }

@@ -1,12 +1,6 @@
 @extends('layouts.app')
 @section('title','Редактировать задание')
 @section('content')
-    @if(session()->has('success'))
-        <input type="hidden" id="success-session" value="{{ session('success') }}">
-    @elseif((session()->has('fail')))
-        <input type="hidden" id="fail-session" value="{{ session('fail') }}">
-    @endif
-
     <div class="row">
         <div class="col-md-8">
             <form method="POST" action="{{ route('task.store') }}" enctype="multipart/form-data">

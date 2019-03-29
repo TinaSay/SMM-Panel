@@ -14,6 +14,7 @@ use Session;
 use Redirect;
 use App\Modules\Bosslike\Models\Task;
 use Illuminate\Support\Facades\Input;
+use GuzzleHttp\Client;
 
 /**
  * Class ProfileController
@@ -26,6 +27,7 @@ class ProfileController extends Controller
      */
     public function index()
     {
+
         $ok = SocialUser::where('social_id', '=', 1)
             ->where('user_id', '=', \Auth::id())
             ->first();
@@ -34,6 +36,7 @@ class ProfileController extends Controller
         $twitter_token = SocialUser::where('social_id', $twitter->id)
             ->where('user_id', '=', \Auth::id())
             ->first();
+
         $instagram = Social::where('name', 'Instagram')->first();
         $instagram_token = SocialUser::where('social_id', $instagram->id)
             ->where('user_id', '=', \Auth::id())
@@ -43,16 +46,29 @@ class ProfileController extends Controller
             ->where('user_id', '=', \Auth::id())
             ->first();
 
+        $tg = Social::where('name', 'Telegram')->first();
+        $tg_token = SocialUser::where('social_id', $tg->id)
+            ->where('user_id', '=', \Auth::id())
+            ->first();
+
+        $youtube = Social::where('name', 'Youtube')->first();
+        $youtube_token = SocialUser::where('social_id', $youtube->id)
+            ->where('user_id', '=', \Auth::id())
+            ->first();
+
         return view('bosslike::profile', [
             'ok' => $ok,
             'twitter' => $twitter_token,
             'instagram' => $instagram_token,
-            'facebook' => $facebook_token
+            'facebook' => $facebook_token,
+            'tg' => $tg_token,
+            'youtube' => $youtube_token
         ]);
     }
 
     public function telegram(Request $request)
     {
+//        dd($request->all());
         $user = Auth::user();
         $social = Social::where('name', 'Telegram')->first();
         $token = SocialUser::where('user_id', $user->id)->where('social_id', $social->id)->first();
@@ -61,15 +77,45 @@ class ProfileController extends Controller
             $token->access_token = $request->hash;
             $token->client_name = $request->username;
             $token->social_id = $social->id;
+            $token->save();
         } else {
             $token = new SocialUser;
             $token->client_id = $request->id;
             $token->access_token = $request->hash;
             $token->client_name = $request->username;
             $token->social_id = $social->id;
+            $user->socialUsers()->save($token);
         }
-        $user->socialUsers()->save($token);
 
+        return redirect()->route('home');
+    }
+
+    public function youtube_login(){
+        return Socialite::with('youtube')->redirect();
+    }
+    public function youtube_callback(){
+        $user = Auth::user();
+        $soc_user = Socialite::driver('youtube')->user();
+        $social = Social::where('name', 'Youtube')->first();
+        $token = SocialUser::where('user_id', $user->id)->where('social_id', $social->id)->first();
+        if ($token) {
+            $token->client_id = $soc_user->id;
+            $token->access_token = $soc_user->token;
+            $token->client_name = $soc_user->nickname;
+            $token->social_id = $social->id;
+            $token->save();
+        } else {
+            $token = new SocialUser;
+            $token->client_id = $soc_user->id;
+            $token->access_token = $soc_user->token;
+            $token->client_name = $soc_user->nickname;
+            $token->social_id = $social->id;
+            $user->socialUsers()->save($token);
+        }
+        if($soc_user->avatar != 'null' && strlen($user->avatar) < 5){
+            $user->avatar = $soc_user->avatar;
+            $user->save();
+        }
         return redirect()->route('home');
     }
 
@@ -168,7 +214,7 @@ class ProfileController extends Controller
         if($socialUser) {
             return response()->json(['status' => true]);
         } else {
-//            toast()->warning('Подключите аккаунт соц.сети чтобы продолжить', 'Нет аккаунта' . $task->service->name);
+            toast()->warning('Подключите аккаунт ' . $task->service->social->name . ' чтобы продолжить', 'Нет аккаунта' . $task->service->social->name);
             return response()->json(['status' => false, 'social' => $task->service->social->name]);
         }
     }

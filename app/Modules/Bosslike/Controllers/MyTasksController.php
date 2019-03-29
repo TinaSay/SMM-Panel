@@ -4,6 +4,7 @@ namespace App\Modules\Bosslike\Controllers;
 
 use App\Modules\Bosslike\Models\Task;
 use App\Http\Controllers\Controller;
+use App\Modules\Bosslike\Models\TaskComments;
 use App\Modules\Bosslike\Models\TaskDone;
 use App\Modules\Bosslike\Requests\TaskSaveRequest;
 use http\Env\Response;
@@ -51,11 +52,24 @@ class MyTasksController extends Controller
         $task = Task::findOrFail($id);
         $task->points = $request->input('points');
         $task->amount = $request->input('amount');
-
         if ($task->save()) {
+
+            if (filled($request->input('comment_text'))) {
+                $commentsArray = $request->input('comment_text');
+
+                $taskComments = TaskComments::where('task_id', '=', $task->id)->get();
+                foreach ($taskComments as $key => $taskComment) {
+                    $taskComment->task_id = $task->id;
+                    $taskComment->text = $commentsArray[$key];
+                    $taskComment->save();
+                }
+
+
+            }
+
             return response()->json([
                 'status' => 1,
-                'message' => 'Изменения сохранены'
+                'message' => 'Изменения сохранены',
             ]);
         }
 
@@ -74,8 +88,10 @@ class MyTasksController extends Controller
     {
         $task = Task::findOrFail($id);
         $task->tasks_done()->delete();
+        $task->transactions()->delete();
+        $task->comments()->delete();
         $task->delete();
-        return redirect()->route('tasks.my')->with('success', 'Удалено');
+        return redirect()->route('tasks.my')->with('success', 'Задание удалено');
     }
 
 

@@ -2,22 +2,21 @@
 
 namespace App\Modules\Bosslike\Controllers;
 
-use App\Modules\Bosslike\Models\Service;
-use App\Modules\Bosslike\Models\Social;
+use App\Helpers\GuzzleClient;
 use App\Modules\Bosslike\Models\SocialUser;
 use App\Modules\Bosslike\Models\Task;
 use App\Http\Controllers\Controller;
 use App\Modules\Bosslike\Models\TaskComments;
 use App\Modules\Bosslike\Services\BosslikeService;
 use App\User;
-use Composer\DependencyResolver\Transaction;
+use Hybridauth\HttpClient\Guzzle;
 use InstagramScraper\Instagram;
 use Config;
 use Illuminate\Http\Request;
 use GuzzleHttp\Client;
-use Mockery\Exception;
 use App\Modules\Bosslike\Models\TaskDone;
 use App\Modules\Bosslike\Models\Transactions;
+use Bosslike;
 
 
 /**
@@ -26,6 +25,19 @@ use App\Modules\Bosslike\Models\Transactions;
  */
 class TasksController extends Controller
 {
+    /**
+     * @var GuzzleClient
+     */
+    protected $guzzle;
+
+    /**
+     * NewTaskController constructor.
+     * @param GuzzleClient $client
+     */
+    public function __construct(GuzzleClient $client)
+    {
+        $this->guzzle = $client;
+    }
 
     public function index()
     {
@@ -46,6 +58,7 @@ class TasksController extends Controller
         if ($socialUser) {
             return view('bosslike::tasks.show', ['link' => $task->link]);
         } else {
+            toast()->error('Подключите аккаунт ' . $task->service->social->name . ', чтобы продолжить.', 'Нет аккаунта ' . $task->service->social->name);
             return redirect('/profile');
         }
     }
@@ -99,6 +112,14 @@ class TasksController extends Controller
         return response()->json($resp);
     }
 
+    /**
+     * @param $id
+     * @param $points
+     * @param $service
+     * @param $type
+     * @param $post_name
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
     public function successTask($id, $points, $service, $type, $post_name)
     {
         $user = \Auth::user();
@@ -108,22 +129,8 @@ class TasksController extends Controller
         $done->status = TaskDone::DONE_TASK;
         $done->save();
 
-        $client = new Client([
-            'base_uri' => 'https://billing.smm-pro.uz'
-        ]);
-
-        $client->request('POST', '/api/deposit', [
-            'headers' => [
-                'Accept' => 'application/json',
-                'Authorization' => 'Bearer ' . session('user_token')
-            ],
-            'form_params' => [
-                'amount' => $points,
-                'description' => 'Начисление денег пользователю ' . \Auth::user()->billing_id,
-                'client' => \Config::get('services.oauthConfig.keys.id'),
-            ]
-        ]);
-        User::getUserBalance();
+        $this->guzzle->depositClient($points);
+        $this->guzzle->getUserBalance();
 
         $trans_action = 'Выполнил задание';
         $trans_desc = BosslikeService::setServiceName($service);
@@ -140,10 +147,9 @@ class TasksController extends Controller
     }
 
 
-
     public function instagram($client_name, $client_id, $post, $service, $check, $randComment = null)
     {
-        if($check == "false") {
+        if ($check == "false") {
             $quantity = 50;
             $title = 'Нажмите проверить.';
             $status = 'warning';
@@ -155,10 +161,10 @@ class TasksController extends Controller
 
         switch ($service) {
             case 'Like':
-                $code = str_replace('/', '',str_replace('https://www.instagram.com/p/', '', $post));
+                $code = str_replace('/', '', str_replace('https://www.instagram.com/p/', '', $post));
 //                $ip = "fe80::9def:4e76:6600:" . rand( 500, 9999 );
 //                Instagram::curlOpts( [ CURLOPT_INTERFACE => $ip, CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V6 ] );
-                $instagram = Instagram::withCredentials(Task::INSTAGRAM_USERNAME, Task::INSTAGRAM_PASSWORD, __DIR__ .'/cache');
+                $instagram = Instagram::withCredentials(Task::INSTAGRAM_USERNAME, Task::INSTAGRAM_PASSWORD, __DIR__ . '/cache');
 //                Instagram::setProxy([
 //                    'address' => '68.15.42.194',
 //                    'port'    => '46682',
@@ -172,37 +178,37 @@ class TasksController extends Controller
                 $likes = $instagram->getMediaLikesByCode($code, $quantity);
 
                 foreach ($likes as $like) {
-                    if($like->getUsername() == $client_name) {
+                    if ($like->getUsername() == $client_name) {
                         return response()->json(['status' => 'success', 'message' => 'Задание выполнено', 'username' => $client_name]);
                     }
                 }
 
                 break;
             case 'Subscribe':
-                $code = str_replace('/', '',str_replace('https://www.instagram.com/', '', $post));
-                $instagram = Instagram::withCredentials(Task::INSTAGRAM_USERNAME, Task::INSTAGRAM_PASSWORD, __DIR__ .'/cache');
+                $code = str_replace('/', '', str_replace('https://www.instagram.com/', '', $post));
+                $instagram = Instagram::withCredentials(Task::INSTAGRAM_USERNAME, Task::INSTAGRAM_PASSWORD, __DIR__ . '/cache');
                 $instagram->login();
 
                 sleep(1);
 
                 $followers = $instagram->getFollowing($client_id, $quantity, 30, true);
 
-                foreach($followers as $follower) {
-                    if($follower['username'] == $code) {
+                foreach ($followers as $follower) {
+                    if ($follower['username'] == $code) {
                         return response()->json(['status' => 'success', 'message' => 'Задание выполнено', 'username' => $code]);
                     }
                 }
 
                 break;
             case 'Comment':
-                $code = str_replace('/', '',str_replace('https://www.instagram.com/p/', '', $post));
+                $code = str_replace('/', '', str_replace('https://www.instagram.com/p/', '', $post));
                 $instagram = new Instagram();
                 $comments = $instagram->getMediaCommentsByCode($code, $quantity);
 
                 foreach ($comments as $comment) {
-                    if($comment->getOwner()->getUsername() == $client_name) {
-                        if($randComment != null) {
-                            if($comment['text'] == $randComment) {
+                    if ($comment->getOwner()->getUsername() == $client_name) {
+                        if ($randComment != null) {
+                            if ($comment['text'] == $randComment) {
                                 return response()->json(['status' => 'success', 'message' => 'Задание выполнено', 'post' => $code, 'username' => $client_name]);
                             }
                         } else {
@@ -226,7 +232,7 @@ class TasksController extends Controller
     {
         $config = Config::get('services.facebook');
 
-        if($check == "false") {
+        if ($check == "false") {
             $title = 'Нажмите проверить.';
             $status = 'warning';
         } else {
@@ -243,48 +249,48 @@ class TasksController extends Controller
 //        $twoMonthToken = $client->getLongLivedAccessToken($twoHourToken);
             case 'Like':
                 try {
-                    $response = $fb->get('/' . $client_id . '_' . $postId . '/likes/', $token);
-                } catch(\Facebook\Exceptions\FacebookResponseException $e) {
+                    $response = $fb->get('/' . $client_id . '_' . $postId . '/likes/', $config['client_id'] . '|' . $config['client_secret']);
+                } catch (\Facebook\Exceptions\FacebookResponseException $e) {
                     return response()->json(['status' => 'error', 'title' => 'Что то пошло не так.', 'message' => 'Попробуйте ещё раз.', 'error' => $e->getMessage()]);
-                } catch(\Facebook\Exceptions\FacebookSDKException $e) {
+                } catch (\Facebook\Exceptions\FacebookSDKException $e) {
                     return response()->json(['status' => 'error', 'title' => 'Что то пошло не так.', 'message' => 'Попробуйте ещё раз.', 'error' => $e->getMessage()]);
                 }
                 $likes = json_decode($response->getBody());
-                foreach($likes->data as $like) {
-                    if($like->id == $client_id) {
+                foreach ($likes->data as $like) {
+                    if ($like->id == $client_id) {
                         return response()->json(['status' => 'success', 'message' => 'Задание выполнено', 'post' => $post, 'username' => $client_name]);
                     }
                 }
                 break;
             case 'Subscribe':
                 try {
-                    $response = $fb->get('/' . $client_id . '/likes/', $token);
-                } catch(\Facebook\Exceptions\FacebookResponseException $e) {
+                    $response = $fb->get('/' . $client_id . '/likes/', $config['client_id'] . '|' . $config['client_secret']);
+                } catch (\Facebook\Exceptions\FacebookResponseException $e) {
                     return response()->json(['status' => 'error', 'title' => 'Что то пошло не так.', 'message' => 'Попробуйте ещё раз.', 'error' => $e->getMessage()]);
-                } catch(\Facebook\Exceptions\FacebookSDKException $e) {
+                } catch (\Facebook\Exceptions\FacebookSDKException $e) {
                     return response()->json(['status' => 'error', 'title' => 'Что то пошло не так.', 'message' => 'Попробуйте ещё раз.', 'error' => $e->getMessage()]);
                 }
                 $follows = json_decode($response->getBody());
 
-                foreach($follows->data as $follow) {
-                    if($follow->id == $postId) {
+                foreach ($follows->data as $follow) {
+                    if ($follow->id == $postId) {
                         return response()->json(['status' => 'success', 'message' => 'Задание выполнено', 'post' => $post, 'username' => $client_name]);
                     }
                 }
                 break;
             case 'Comment':
                 try {
-                    $response = $fb->get('/' . $client_id . '_' . $postId . '/comments/', $token);
-                } catch(\Facebook\Exceptions\FacebookResponseException $e) {
+                    $response = $fb->get('/' . $client_id . '_' . $postId . '/comments/', $config['client_id'] . '|' . $config['client_secret']);
+                } catch (\Facebook\Exceptions\FacebookResponseException $e) {
                     return response()->json(['status' => 'error', 'title' => 'Что то пошло не так.', 'message' => 'Попробуйте ещё раз.', 'error' => $e->getMessage()]);
-                } catch(\Facebook\Exceptions\FacebookSDKException $e) {
+                } catch (\Facebook\Exceptions\FacebookSDKException $e) {
                     return response()->json(['status' => 'error', 'title' => 'Что то пошло не так.', 'message' => 'Попробуйте ещё раз.', 'error' => $e->getMessage()]);
                 }
                 $comments = json_decode($response->getBody());
-                foreach($comments->data as $comment) {
-                    if($comment->from->id == $client_id) {
-                        if($randComment != null) {
-                            if($comment->message == $randComment) {
+                foreach ($comments->data as $comment) {
+                    if ($comment->from->id == $client_id) {
+                        if ($randComment != null) {
+                            if ($comment->message == $randComment) {
                                 return response()->json(['status' => 'success', 'message' => 'Задание выполнено', 'post' => $post, 'username' => $client_name]);
                             }
                         } else {
@@ -295,15 +301,15 @@ class TasksController extends Controller
                 break;
             case 'Share':
                 try {
-                    $response = $fb->get('/' . $client_id . '/posts/', $token);
-                } catch(\Facebook\Exceptions\FacebookResponseException $e) {
+                    $response = $fb->get('/' . $client_id . '/posts/', $config['client_id'] . '|' . $config['client_secret']);
+                } catch (\Facebook\Exceptions\FacebookResponseException $e) {
                     return response()->json(['status' => 'error', 'title' => 'Что то пошло не так.', 'message' => 'Попробуйте ещё раз.', 'error' => $e->getMessage()]);
-                } catch(\Facebook\Exceptions\FacebookSDKException $e) {
+                } catch (\Facebook\Exceptions\FacebookSDKException $e) {
                     return response()->json(['status' => 'error', 'title' => 'Что то пошло не так.', 'message' => 'Попробуйте ещё раз.', 'error' => $e->getMessage()]);
                 }
                 $posts = json_decode($response->getBody());
-                foreach($posts->data as $item) {
-                    if($item->id == $client_id . '_' . $post) {
+                foreach ($posts->data as $item) {
+                    if ($item->id == $client_id . '_' . $post) {
                         return response()->json(['status' => 'success', 'message' => 'Задание выполнено', 'post' => $post, 'username' => $client_name]);
                     }
                 }
@@ -323,10 +329,10 @@ class TasksController extends Controller
         $path = explode('t.me/', $link);
         $client = new Client();
         $url = 'https://api.telegram.org/bot';
-        $channel_admin = $client->request('POST', $url.env('TG_TOKEN').'/getChatMember',
+        $channel_admin = $client->request('POST', $url . env('TG_TOKEN') . '/getChatMember',
             [
                 'form_params' => [
-                    'chat_id' => '@'.$path[1],
+                    'chat_id' => '@' . $path[1],
                     'user_id' => $token->client_id
                 ],
                 'http_errors' => false

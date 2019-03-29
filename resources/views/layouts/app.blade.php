@@ -7,7 +7,7 @@
     <!-- CSRF Token -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ config('app.name', 'Laravel') }}</title>
+    <title>Picstar.uz</title>
 
     <!-- Fonts -->
     <link rel="dns-prefetch" href="//fonts.gstatic.com">
@@ -35,6 +35,17 @@
         }
 
     </style>
+
+    {{--favicon--}}
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('favicon/apple-touch-icon.png') }}">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon//favicon-32x32.png') }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('favicon/favicon-16x16.png') }}">
+    <link rel="manifest" href="{{ asset('favicon/site.webmanifest') }}">
+    <link rel="mask-icon" href="{{ asset('favicon/safari-pinned-tab.svg') }}" color="#5bbad5">
+    <meta name="msapplication-TileColor" content="#da532c">
+    <meta name="theme-color" content="#ffffff">
+    {{--favicon end--}}
+
     @stack('functions')
 </head>
 <body>
@@ -53,8 +64,8 @@
 
                 <div class="role-switcher bordered">
                     <label
-                            class="switcher-title @if(Session::get('usertype') == 'advertiser' or Session::get('usertype') == null )active @endif"
-                            data-name="advertiser">Рекламодатель</label>
+                        class="switcher-title @if(Session::get('usertype') == 'advertiser' or Session::get('usertype') == null )active @endif"
+                        data-name="advertiser">Рекламодатель</label>
                     <label class="switch">
                         <input type="checkbox" id="checktype" @if(Session::get('usertype') == 'blogger')checked @endif>
                         <a class="slider round">
@@ -77,10 +88,10 @@
                 <section class="top-menu">
                     <nav class="navbar navbar-expand-lg navbar-light">
 
-                        <button class="navbar-toggler" type="button" data-toggle="collapse"
-                                data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent"
-                                aria-expanded="false" aria-label="Toggle navigation">
-                            <span class="navbar-toggler-icon"></span>
+                        <button class="navbar-toggler" type="button">
+                            <span class="navbar-icon"></span>
+                            <span class="navbar-icon"></span>
+                            <span class="navbar-icon"></span>
                         </button>
 
 
@@ -112,7 +123,7 @@
                                 <li class="nav-item text-center">
                                      <span class="badge badge-success badge-circle">
                                           <i class="fas fa-star"></i>
-                                          <span id="user_balance"></span>
+                                          <span class="user_balance"></span>
                                       </span>
                                     <a class="nav-link pt-1" href="/deposit/">
                                         Пополнить баланс
@@ -126,8 +137,10 @@
                                 <li class="dropdown open">
                                     <a href="#" class="dropdown-toggle" data-toggle="dropdown"
                                        aria-expanded="true">
-                                        <div class="img-holder img-thumbnail border-0 ava"
-                                             style="background-image: url({{ (!empty(Auth::user()->avatar)) ? asset('uploads/'.Auth::user()->avatar) : asset('images/ava.png') }})">
+                                        <div
+                                            class="img-holder img-thumbnail border-0 ava"
+                                            {{--style="background-image: url({{asset('uploads/'.Auth::user()->avatar)}})"--}}
+                                            style="background-image: url({{ (!empty(Auth::user()->avatar)) ? asset('uploads/'.Auth::user()->avatar) : asset('images/avatars/'.Bosslike::randomImage()) }})">
                                         </div>
 
                                     </a>
@@ -144,12 +157,6 @@
                             </ul>
                         </div>
                     </nav>
-
-                    {{--<div class="row justify-content-center">
-                        <div class="col-md-10 px-0 py-2">
-                            @include('layouts.top-bar')
-                        </div>
-                    </div>--}}
                 </section>
                 <section class="pb-3">
                     <div class="container">
@@ -168,6 +175,11 @@
                             {{--@endforeach--}}
                             {{--@endif--}}
                             <div class="col-md-10">
+                                @if(session()->has('success'))
+                                    <input type="hidden" id="success-session" value="{{ session('success') }}">
+                                @elseif((session()->has('fail')))
+                                    <input type="hidden" id="fail-session" value="{{ session('fail') }}">
+                                @endif
                                 @yield('content')
                             </div>
                         </div>
@@ -180,7 +192,10 @@
     @endauth
     @yield('authorize')
 </div>
+
 @include('toast::messages-jquery')
+<script src="{{ asset('js/manifest.js') }}"></script>
+<script src="{{ asset('js/vendor.js') }}"></script>
 <script src="{{ asset('js/app.js') }}"></script>
 <script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
 <script src="{{asset('js/functions.js')}}"></script>
@@ -188,22 +203,28 @@
 <script>
     $(document).ready(function () {
 
-        // $('#description').summernote({
-        //     popover: false,
-        //     height: 200,
-        //     toolbar: [
-        //         // [groupName, [list of button]]
-        //         ['style', ['bold', 'italic', 'underline', 'clear']],
-        //         ['fontsize', ['fontsize']],
-        //         ['color', ['color']],
-        //         ['para', ['ul', 'ol']],
-        //     ]
-        // });
-
-        $(document).ready(function () {
-            getBalance();
-
+        $('#description').summernote({
+            popover: false,
+            height: 200,
+            toolbar: [
+                // [groupName, [list of button]]
+                ['style', ['bold', 'italic', 'underline', 'clear']],
+                ['fontsize', ['fontsize']],
+                ['color', ['color']],
+                ['para', ['ul', 'ol']],
+            ]
         });
+
+        getBalance();
+
+        var _successSession = $('#success-session').val();
+        var _failSession = $('#fail-session').val();
+        if (_successSession != null) {
+            window.toastr.success(_successSession);
+        } else if (_failSession != null) {
+            window.toastr.error(_failSession);
+        }
+
 
         (function ($) {
             $("#side-menu").mCustomScrollbar({
@@ -255,6 +276,15 @@
                 }
             })
         }
+
+        $(".navbar-toggler").click(function () {
+            $(".sidebar").toggleClass("active");
+        });
+
+        $(".sidebar .close-menu").click(function (e) {
+            e.preventDefault();
+            $(".sidebar").removeClass("active");
+        });
     });
 </script>
 @stack('scripts')

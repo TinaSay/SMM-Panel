@@ -2,12 +2,27 @@
 
 namespace App\Modules\Cart\Services;
 
+use App\Helpers\GuzzleClient;
 use App\Modules\SmmPro\Models\Order;
 use App\Modules\SmmPro\Models\Service;
 use Session;
 
 class Cart
 {
+    /**
+     * @var GuzzleClient
+     */
+    protected $guzzle;
+
+    /**
+     * NewTaskController constructor.
+     * @param GuzzleClient $client
+     */
+    public function __construct(GuzzleClient $client)
+    {
+        $this->guzzle = $client;
+    }
+
     public function addItem($item)
     {
         $contents = $this->getContents();
@@ -74,19 +89,23 @@ class Cart
         return $total;
     }
 
+    /**
+     * @return int
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
     public function checkout()
     {
         $cart = $this->getContents();
         $total = $this->getTotal();
         $user = \Auth::user();
-        $balance = $user->getUserBalance();
+        $balance = $this->guzzle->getUserBalance();
 
         if ($balance / 100 - $total < 0) {
             return -1;
         }
 
         foreach ($cart as $item) {
-            $balance = $user->getUserBalance();
+            $balance = $this->guzzle->getUserBalance();
 
             if ($balance / 100 - $item['price'] * $item['qty']) {
                 return -2;
@@ -156,19 +175,7 @@ class Cart
             $order->remains = 0;
             $order->save();
 
-            $client = new \GuzzleHttp\Client(['base_uri' => 'https://billing.smm-pro.uz']);
-
-            $client->request('POST', '/api/charge', [
-                'headers' => [
-                    'Accept' => 'application/json',
-                    'Authorization' => 'Bearer ' . session('user_token')
-                ],
-                'form_params' => [
-                    'amount' => $charge,
-                    'description' => 'Оплата заказа № ' . $order_id . ' пользователя ' . \Auth::user()->billing_id . ' на smm-pro.uz',
-                    'client' => \Config::get('services.oauthConfig.keys.id'),
-                ]
-            ]);
+            $this->guzzle->chargeClient($charge);
 
             $this->removeItem($item);
         }

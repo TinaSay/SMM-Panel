@@ -35,13 +35,7 @@
 @push('scripts')
     <script>
         $(document).ready(function () {
-            var _successSession = $('#success-session').val();
-            var _failSession = $('#fail-session').val();
-            if (_successSession != null) {
-                window.toastr.success(_successSession);
-            } else if (_failSession != null) {
-                window.toastr.error(_failSession);
-            }
+
             /*$('.table-services').DataTable({
                 "language": {
                     "search": 'Поиск',

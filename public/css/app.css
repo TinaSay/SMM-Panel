@@ -12131,6 +12131,7 @@ a.text-dark:focus {
   padding-top: 2px;
   vertical-align: middle;
   font-weight: normal;
+  cursor: pointer;
 }
 
 .switcher-title.active {
@@ -12580,13 +12581,12 @@ a:hover {
 .navbar .ava {
   margin-top: 6px;
   margin-left: 6px;
-  display: inline-block;
 }
 
 .dropdown-toggle::after {
-  margin-left: 4px;
+  margin-left: 0;
   margin-right: 4px;
-  display: inline;
+  vertical-align: 0;
 }
 
 /*end navbar*/
@@ -12594,7 +12594,7 @@ a:hover {
 .page-title {
   font-size: 33px;
   color: #555;
-  float: left;
+  text-align: center;
 }
 
 .card-body {
@@ -12857,6 +12857,12 @@ label {
   border-color: #394a77;
 }
 
+.btn-youtube {
+  color: #fff;
+  background-color: #f00;
+  border-color: #c52222;
+}
+
 .btn-twitter {
   color: #fff;
   background-color: #1bb2e9;
@@ -13042,18 +13048,400 @@ label {
 .btn-twitter i,
 .btn-odnoklassniki i,
 .btn-instagram i,
-.btn-facebook i {
+.btn-facebook i,
+.btn-youtube i {
   margin-right: 15px;
 }
 
 .btn-twitter,
 .btn-odnoklassniki,
 .btn-instagram,
-.btn-facebook {
+.btn-facebook,
+.btn-youtube {
   border: none;
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.topped li.dropdown a {
+  display: flex;
+  align-items: center;
+  color: #FFF;
+}
+
+.topped li.dropdown a .text span {
+  display: block;
+}
+
+.user-social-info {
+  font-size: 9px;
+  color: #999;
+  margin-bottom: 5px;
+  position: relative;
+  display: flex;
+}
+
+.user-social-info span.user-social-info-number {
+  font-size: 14px;
+  font-weight: bold;
+  color: #000;
+  display: block;
+}
+
+.user-social-info > span {
+  display: block;
+  text-align: center;
+  padding-right: 15px;
+}
+
+.user-social-info span.update-user-social-info i.fas {
+  font-size: 12px;
+  position: absolute;
+  top: -18px;
+  right: 0;
+}
+
+.account-buttons .form-group {
+  position: relative;
+}
+
+.user-desc {
+  float: right;
+  margin-top: -25px;
+  position: relative;
+  z-index: 10;
+}
+
+.user-desc .btn {
+  display: flex;
+  align-items: center;
+  color: #f00;
+  border: none;
+  justify-content: flex-end;
+  padding: 0;
+}
+
+.soc-badge i.fa-facebook {
+  background-color: #FFF;
+  color: #3b5998;
+  font-size: 21px;
+  margin-top: 2px;
+}
+
+.soc-badge {
+  position: absolute;
+  left: 92px;
+  top: 34px;
+  width: 22px;
+  height: 22px;
+  overflow: hidden;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #FFF;
+}
+
+@media (min-width: 991px) {
+  .sidebar .topped {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+    margin-left: -100% !important;
+  }
+
+  .sidebar.active {
+    margin-left: 0 !important;
+  }
+}
+
+button.navbar-toggler .navbar-icon {
+  display: block;
+  width: 100%;
+  height: 2px;
+  background: #58598d;
+  margin-top: 3px;
+  transition: 600ms;
+}
+
+button.navbar-toggler.active .navbar-icon:nth-child(1) {
+  -webkit-transform: rotate(45deg);
+          transform: rotate(45deg);
+}
+
+button.navbar-toggler.active .navbar-icon:nth-child(2) {
+  opacity: 0;
+}
+
+button.navbar-toggler.active .navbar-icon:nth-child(3) {
+  -webkit-transform: rotate(-45deg) translate(7px, -7px);
+          transform: rotate(-45deg) translate(7px, -7px);
+}
+
+.navbar-light .navbar-toggler {
+  border: none;
+  padding: 0;
+  width: 20px;
+  margin: 10px 26px 13px;
+  outline: none transparent !important;
+}
+
+.close-menu {
+  font-size: 12px;
+  position: absolute;
+  right: 0;
+  top: 16px;
+}
+
+.nav .dropdown-toggle::after {
+  position: absolute;
+  top: 50%;
+  right: 5px;
+}
+
+.navbar .ava {
+  margin-right: 24px;
+}
+
+.ava-gradient {
+  background-size: 50%;
+  background-color: #5A5C92;
+}
+
+.sidebar .list-group-item .badge i {
+  color: #FFF;
+}
+
+.sidebar .list-group-item .badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 13px 5px 0;
+}
+
+.topped .list-group-item {
+  display: flex;
+  justify-content: space-between;
+}
+
+.topped li.nav-item.text-center {
+  /* position: absolute; */
+  bottom: 30px;
+  right: 0;
+  list-style: none;
+  color: #FFF;
+}
+
+.topped li.dropdown.open {
+  margin-top: 15px;
+}
+
+.topped ul.dropdown-menu {
+  position: unset !important;
+  overflow: visible;
+  -webkit-transform: none !important;
+          transform: none !important;
+  width: 100%;
+  margin-left: -3px;
+  background: transparent;
+}
+
+.topped ul.dropdown-menu a {
+  font-size: 16px;
+}
+
+.topped ul.dropdown-menu i {
+  color: #897DC2;
+  font-size: 1.3em;
+  min-width: 34px;
+}
+
+.topped ul.dropdown-menu li {
+  height: 40px;
+  display: flex;
+  align-items: center;
+}
+
+.topped ul.dropdown-menu li.divider {
+  display: none;
+}
+
+.topped .dropdown-toggle::after {
+  border: none;
+  border-bottom: 2px solid #fff;
+  border-right: 2px solid #fff;
+  width: 15px;
+  height: 15px;
+  display: block;
+  -webkit-transform: rotate(45deg);
+          transform: rotate(45deg);
+  position: absolute;
+  right: 30px;
+  top: 10px;
+}
+
+label.custom-control-label[for=male]::before,
+label.custom-control-label[for=male]::after,
+label.custom-control-label[for=female]::before,
+label.custom-control-label[for=female]::after {
+  display: none;
+}
+
+label.custom-control-label[for=male],
+label.custom-control-label[for=female] {
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+}
+
+label.custom-control-label {
+  cursor: pointer;
+}
+
+label.custom-control-label[for=male] i {
+  color: #428bd0;
+  font-size: 45px;
+  opacity: 0.3;
+  transition: 600ms;
+}
+
+label.custom-control-label[for=female] i {
+  color: #d0426c;
+  font-size: 45px;
+  opacity: 0.3;
+  transition: 600ms;
+}
+
+input[type=radio]:checked + label.custom-control-label i {
+  opacity: 1;
+}
+
+.user-desc .btn:hover {
+  color: red;
+  opacity: 1;
+  background: transparent;
+  outline: transparent;
+}
+
+.avatar-upload {
+  position: relative;
+  max-width: 205px;
+  margin: 50px 0;
+}
+
+.avatar-upload .avatar-edit {
+  position: absolute;
+  left: 80px;
+  z-index: 1;
+  top: 10px;
+}
+
+.avatar-upload .avatar-edit input {
+  display: none;
+}
+
+.avatar-upload .avatar-edit input + label {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width: 34px;
+  height: 34px;
+  margin-bottom: 0;
+  border-radius: 100%;
+  background: #FFFFFF;
+  border: 1px solid transparent;
+  box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  font-weight: normal;
+  transition: all 0.2s ease-in-out;
+}
+
+.avatar-upload .avatar-edit input + label:hover {
+  background: #f1f1f1;
+  border-color: #d6d6d6;
+}
+
+.avatar-upload .avatar-preview {
+  width: 100px;
+  height: 100px;
+  position: relative;
+  border-radius: 100%;
+  border: 2px solid #F8F8F8;
+  box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.1);
+}
+
+.avatar-upload .avatar-preview > div {
+  width: 100%;
+  height: 100%;
+  border-radius: 100%;
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.custom-control-inline {
+  display: inline-flex;
+  margin-right: 1rem;
+  padding-left: 0;
+}
+
+.navbar .nav-item:hover a {
+  background: #f1f1f1;
+}
+
+.navbar .nav-item:hover a,
+.navbar .nav-item:hover a i {
+  color: #877dc2 !important;
+}
+
+.navbar .nav-item a,
+.navbar .nav-item a i {
+  transition: 0.5s;
+}
+
+span.update-user-social-info i {
+  cursor: pointer;
+  transition: 600ms;
+}
+
+span.update-user-social-info i:hover {
+  -webkit-transform: scale(1.5);
+          transform: scale(1.5);
+  color: #000;
+}
+
+@-webkit-keyframes rotate {
+  from {
+    -webkit-transform: rotate(0);
+            transform: rotate(0);
+  }
+
+  to {
+    -webkit-transform: rotate(360deg);
+            transform: rotate(360deg);
+  }
+}
+
+@keyframes rotate {
+  from {
+    -webkit-transform: rotate(0);
+            transform: rotate(0);
+  }
+
+  to {
+    -webkit-transform: rotate(360deg);
+            transform: rotate(360deg);
+  }
+}
+
+span.update-user-social-info.social-update-rotate i {
+  -webkit-animation: rotate 1000ms infinite;
+          animation: rotate 1000ms infinite;
+  color: #432ab9;
 }
 
 @media (min-width: 1600px) {
@@ -13117,7 +13505,6 @@ label {
   }
 
   .img-holder {
-    margin-left: 50px;
     margin-bottom: 12px;
   }
 

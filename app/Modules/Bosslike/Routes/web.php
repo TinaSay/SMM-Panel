@@ -21,7 +21,6 @@ Route::group([
         Route::get('twitter/callback', 'ProfileController@twitter_callback')->name('twitter.callback');
 
         Route::get('task/new', 'NewTaskController@create')->name('task.create');
-        Route::get('task/speed/{social}/{service}', 'NewTaskController@getTaskSpeed')->name('task.speed');
         Route::get('task/new/services/{socialId}', 'NewTaskController@getServicesAjax');
         Route::post('task/store', 'NewTaskController@store')->name('task.store');
         Route::get('task/show/{id}', 'TasksController@show')->name('task.show');
@@ -33,8 +32,7 @@ Route::group([
         Route::put('task/update/{id}', 'MyTasksController@updateAjax');
         Route::post('task/delete/{id}', 'MyTasksController@delete')->name('task.delete');
 
-        Route::get('balance', 'ApiController@getFormattedBalance');
-        Route::get('raw-balance', 'ApiController@getUserBalance');
+        Route::get('balance', 'ApiController@getBalance');
         Route::get('profile/check/{id}', 'ProfileController@checkProfile')->name('profile.check');
         Route::get('profile/history', 'ProfileController@history')->name('profile.history');
 
@@ -44,6 +42,12 @@ Route::group([
         Route::post('info/update/{id}', 'MyInfoController@update')->name('info.update');
 
         Route::get('tasks-done', 'MyTasksController@countDone');
+        Route::get('storage-link', function () {
+            Artisan::call('storage:link');
+        });
+
+        Route::get('youtube/login', 'ProfileController@youtube_login')->name('youtube.login');
+        Route::get('youtube/callback', 'ProfileController@youtube_callback')->name('youtube.callback');
 
     });
 });

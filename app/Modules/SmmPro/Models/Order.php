@@ -2,6 +2,7 @@
 
 namespace App\Modules\SmmPro\Models;
 
+use App\Helpers\GuzzleClient;
 use App\User;
 use Illuminate\Database\Eloquent\Model;
 
@@ -67,6 +68,7 @@ class Order extends Model
      */
     public static function checkOrderStatus($order)
     {
+        $guzzle = new GuzzleClient();
         if ($order->status !== 'cancelled') { //no actions if the order already has status "cancelled"
 
             if (stripos($order->service->service_api, 'smmpanel') !== false) { //smmpanel
@@ -88,7 +90,7 @@ class Order extends Model
                 if ($content->data->status == 9) { //change local status if order status is cancelled
                     $order->status = 'cancelled';
                     $order->save();
-                    User::refundUserBalance($order);
+                    $guzzle->refundUserBalance($order);
                 }
 
             } elseif (strpos($order->service->service_api, 'justanotherpanel') !== false) {  // Justanotherpanel
@@ -103,7 +105,7 @@ class Order extends Model
                 if ($resp->status == "Canceled") {
                     $order->status = 'cancelled';
                     $order->save();
-                    User::refundUserBalance($order);
+                    $guzzle->refundUserBalance($order);
                 }
 
             } //endif Justanotherpanel

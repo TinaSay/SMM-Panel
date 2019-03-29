@@ -1,18 +1,10 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Bahti
- * Date: 3/15/2019
- * Time: 12:17 PM
- */
 
 namespace App\Modules\Bosslike\Controllers;
-
 
 use App\Http\Controllers\Controller;
 use App\Modules\Bosslike\Requests\InfoSaveRequest;
 use App\User;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * Class MyInfoController
@@ -44,21 +36,16 @@ class MyInfoController extends Controller
     {
         $user = User::findOrFail(\Auth::id());
         $user->first_name = $request->input('first_name');
-        $user->last_name = $request->input('last_name');
         $user->gender = $request->input('gender');
         $file = $request->file('avatar');
 
         if ($file) {
-            $ext = $file->getClientOriginalExtension();
-            $filename = 'avatar' . time() . '.' . $ext;
-            $file->storeAs('uploads', $filename);
-            /*Storage::putFileAs('public/uploads/', $file, $filename);*/
-            $user->avatar = $filename;
+            $avatar = self::storeAvatar($file);
+            $user->avatar = $avatar;
 
         } else {
             $filename = null;
         }
-
 
         $user->save();
         return redirect()->route('task.create')->with('success', 'Изменения сохранены');
@@ -83,22 +70,29 @@ class MyInfoController extends Controller
     {
         $user = User::findOrFail($id);
         $user->first_name = $request->input('first_name');
-        $user->last_name = $request->input('last_name');
         $user->gender = $request->input('gender');
 
         $file = $request->file('avatar');
 
         if (filled($file)) {
-
-            $ext = $file->getClientOriginalExtension();
-            $filename = 'avatar' . time() . '.' . $ext;
-            $file->storeAs('uploads', $filename);
-
-            $user->avatar = $filename;
+            $avatar = self::storeAvatar($file);
+            $user->avatar = $avatar;
         }
 
         $user->save();
         return redirect()->route('task.create')->with('success', 'Изменения сохранены');
+    }
+
+    /**
+     * @param $file
+     * @return string
+     */
+    public static function storeAvatar($file)
+    {
+        $ext = $file->getClientOriginalExtension();
+        $filename = 'avatar' . time() . '.' . $ext;
+        $file->storeAs('uploads', $filename);
+        return $filename;
     }
 
 }

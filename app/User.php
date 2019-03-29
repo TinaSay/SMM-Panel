@@ -102,54 +102,5 @@ class User extends Authenticatable
         return $this->hasMany(Task::class);
     }
 
-    /**
-     * @return bool|int|mixed
-     * @throws GuzzleHttp\Exception\GuzzleException
-     */
-    public static function getUserBalance()
-    {
-        $client = new GuzzleHttp\Client([
-            'base_uri' => 'https://billing.smm-pro.uz'
-        ]);
-        $response = $client->request('POST', '/api/get-balance', [
-            'headers' => [
-                'Accept' => 'application/json',
-                'Authorization' => 'Bearer ' . session('user_token')
-            ]
-        ]);
-
-        $res = json_decode((string)$response->getBody()->getContents());
-
-        if (!$res == null) {
-            return $res;
-        } else {
-            return 0;
-        }
-    }
-
-    /**
-     * @param $order
-     * @throws GuzzleHttp\Exception\GuzzleException
-     */
-    public
-    static function refundUserBalance($order)
-    {
-        $client = new GuzzleHttp\Client([
-            'base_uri' => 'https://billing.smm-pro.uz'
-        ]);
-
-        $client->request('POST', '/api/deposit', [
-            'headers' => [
-                'Accept' => 'application/json',
-                'Authorization' => 'Bearer ' . session('user_token')
-            ],
-            'form_params' => [
-                'amount' => $order->charge,
-                'description' => 'Возврат денег за заказ № ' . $order->order_api_id . ' пользователя ' . \Auth::user()->billing_id,
-                'client' => \Config::get('services.oauthConfig.keys.id'),
-            ]
-        ]);
-    }
-
 
 }

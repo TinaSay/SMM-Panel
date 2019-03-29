@@ -2,9 +2,8 @@
 
 namespace App\Modules\SmmPro\Controllers;
 
+use App\Helpers\GuzzleClient;
 use App\Modules\SmmPro\Models\Service;
-use App\User;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Http\Request;
 use App\Modules\SmmPro\Models\Order;
 use App\Http\Controllers\Controller;
@@ -16,6 +15,20 @@ use Illuminate\Support\Facades\Auth;
  */
 class MyOrdersController extends Controller
 {
+    /**
+     * @var GuzzleClient
+     */
+    protected $guzzle;
+
+    /**
+     * NewTaskController constructor.
+     * @param GuzzleClient $client
+     */
+    public function __construct(GuzzleClient $client)
+    {
+        $this->guzzle = $client;
+    }
+
     /**
      * @return \Illuminate\Contracts\View\Factory|\Illuminate\View\View
      */
@@ -44,7 +57,7 @@ class MyOrdersController extends Controller
         $order_id = 0;
         $start_count = 0;
         $quantity = $service->quantity;
-        $balance = User::getUserBalance() / 100;
+        $balance = $this->guzzle->getUserBalance() / 100;
         $charge = $service->price;
 
         if ($balance < $charge) {
@@ -111,19 +124,7 @@ class MyOrdersController extends Controller
             $order->remains = 0;
             $order->save();
 
-            $client = new \GuzzleHttp\Client(['base_uri' => 'https://billing.smm-pro.uz']);
-
-            $client->request('POST', '/api/charge', [
-                'headers' => [
-                    'Accept' => 'application/json',
-                    'Authorization' => 'Bearer ' . session('user_token')
-                ],
-                'form_params' => [
-                    'amount' => $charge,
-                    'description' => 'Оплата заказа № ' . $order_id . ' пользователя ' . Auth::user()->billing_id . ' на smm-pro.uz',
-                    'client' => Config::get('services.oauthConfig.keys.id'),
-                ]
-            ]);
+            $this->guzzle->chargeClient($charge);
 
             return response()->json($order);
         }

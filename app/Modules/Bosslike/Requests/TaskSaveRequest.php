@@ -32,7 +32,7 @@ class TaskSaveRequest extends FormRequest
                 'service_id' => 'required|exists:services,id',
                 'link' => 'required|url',
                 'points' => 'required|numeric|min:10',
-                'amount' => 'required|numeric|min:10',
+                'amount' => 'required|numeric|min:10'
             ];
         } else {
             return [

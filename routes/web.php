@@ -9,7 +9,7 @@ Route::get('oauth/login', 'Auth\OauthController@login')->name('oauth.login');
 
 Route::get('/home', 'HomeController@index')->name('home');
 
-Route::get('login', 'Auth\LoginController@showLoginForm', function () {
+Route::get('login', 'Auth\OauthController@login', function () {
     dd('kk');
 })->name('login');
 
@@ -21,4 +21,3 @@ Route::get('auth/{provider}/callback', 'Auth\SocialAuthController@handleProvider
 Route::get('politika_konfidencialnosti', function () {
     return view('politika_konfidencialnosti');
 });
-

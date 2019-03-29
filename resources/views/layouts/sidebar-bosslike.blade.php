@@ -15,6 +15,6 @@
     </li>
     <li class="list-group-item">
         <i class="far fa-money-bill-alt"></i>
-        <a href="#">Мои сделки</a>
+        <a href="/profile/history">Выполненные задания</a>
     </li>
 </ul>

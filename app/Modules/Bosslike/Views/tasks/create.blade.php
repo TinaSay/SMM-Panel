@@ -1,11 +1,6 @@
 @extends('layouts.app')
 @section('title','Новое задание')
 @section('content')
-    @if(session()->has('success'))
-        <input type="hidden" id="success-session" value="{{ session('success') }}">
-    @elseif((session()->has('fail')))
-        <input type="hidden" id="fail-session" value="{{ session('fail') }}">
-    @endif
     <div class="row">
         <div class="col-md-12">
             <div class="alert alert-warning alert-dismissable text-center">
@@ -182,13 +177,14 @@
                                 <h5>Комментарий <span class="comment-number"></span>
                                     <a href="#" class="remove-comment d-none">
                                         <i class="fas fa-trash"></i>
-                                    </a></h5>
-                                <textarea name="comment_text1"
+                                    </a>
+                                </h5>
+                                <textarea name="comment_text[]"
                                           placeholder="Напишите комментарий, который должен оставить пользователь"
                                           class="form-control" rows="2" maxlength="150"></textarea>
                                 @if(session()->has('error'))
-                                    <h2>nonono</h2>
-                                    @endif
+                                    <h2>error</h2>
+                                @endif
                                 <input type="hidden" value="" class="counter" name="counter">
 
                             </div>
@@ -223,11 +219,6 @@
     <script>
         $(document).ready(function () {
 
-            var session = $('#success-session').val();
-            if (session != null) {
-                window.toastr.success(session);
-            }
-
             $('.submit-task').on('click', function () {
                 var commentsCounter = $('.comment-counter').text();
                 $('.counter').val(commentsCounter);
@@ -237,25 +228,28 @@
             var $speed = 1;
             totalPoints();
 
+            $('.comment-number').last().text($('.comment-block .comment-input').length);
+            $('.comment-counter').text($('.comment-block .comment-input').length);
 
-            $('.comment-number').text(1);
-            $('.comment-counter').text(1);
 
-
-            var x=1;
             $('.add-comment-btn').on('click', function () {
+                $('.comment-input').last().clone().addClass('next').appendTo($('.comment-block')).find('textarea').val('');
 
-                $('.comment-input').last().clone().addClass('next').appendTo($('.comment-block')).find('textarea').val('').attr('name','comment_text'+(x+1));
-                $('.next').find('.remove-comment').removeClass('d-none');
-                $('.comment-number, .comment-counter').text(function (index) {
-                    return (index + 1);
-                });
-                x++;
+                var commentsCounter = $('.comment-block .comment-input').length;
+                $('.remove-comment:last').removeClass('d-none');
+                $('.remove-comment:not(:last)').addClass('d-none');
+                $('.comment-number').last().text(commentsCounter);
+                $('.comment-counter').text(commentsCounter);
             });
 
             $(document).on('click', '.remove-comment i', function (e) {
                 e.preventDefault();
                 $(this).parent().parent().parent().parent().remove();
+                if ($('.comment-input').hasClass('next')) {
+                    $('.remove-comment:last').removeClass('d-none');
+                }
+                var commentsCounter = $('.comment-block .comment-input').length;
+                $('.comment-counter').text(commentsCounter);
             });
 
             $('#service_id').on('change', function () {

@@ -13,11 +13,11 @@ class AddColumnsTasks extends Migration
      */
     public function up()
     {
-        Schema::table('tasks', function (Blueprint $table) {
+
+    }/*Schema::table('tasks', function (Blueprint $table) {
             $table->string('type')->after('amount');
             $table->string('picture')->after('type');
-        });
-    }
+        });*/
 
     /**
      * Reverse the migrations.

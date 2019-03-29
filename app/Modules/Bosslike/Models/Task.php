@@ -47,12 +47,11 @@ use Illuminate\Database\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Modules\Bosslike\Models\Task wherePostName($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Modules\Bosslike\Models\Task whereSngAmounts($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Modules\Bosslike\Models\Task whereSngPoints($value)
- * @property-read \Illuminate\Database\Eloquent\Collection|\App\Modules\Bosslike\Models\TaskDone[] $tasks_done
  */
 class Task extends Model
 {
 
-    const INSTAGRAM_USERNAME = 'mari__krasnova';
+    const INSTAGRAM_USERNAME = 'picstar.uz';
     const INSTAGRAM_PASSWORD = 'secretsecret1234';
 
     const MONEY_IN = 'in';
@@ -91,5 +90,13 @@ class Task extends Model
     public function tasks_done()
     {
         return $this->hasMany(TaskDone::class, 'task_id', 'id');
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function transactions()
+    {
+        return $this->hasMany(Transactions::class);
     }
 }

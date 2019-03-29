@@ -1,12 +1,6 @@
 @extends('layouts.app')
 @section('title','Мои данные')
 @section('content')
-    @if(session()->has('success'))
-        <input type="hidden" id="success-session" value="{{ session('success') }}">
-    @elseif((session()->has('fail')))
-        <input type="hidden" id="fail-session" value="{{ session('fail') }}">
-    @endif
-
     <div class="row justify-content-left">
         <div class="col-12 col-sm-12 col-md-12">
             <form method="POST" enctype="multipart/form-data" action="info/save">
@@ -28,45 +22,44 @@
                         </div>
 
                         <div class="form-group">
-                            <label for="last_name">Фамилия</label>
-
-                            <input id="last_name" type="text" name="last_name" value="{{ old('last_name') }}"
-                                   class="form-control{{ $errors->has('last_name') ? ' is-invalid' : '' }}">
-
-                            @if ($errors->has('last_name'))
-                                <span class="invalid-feedback" role="alert">
-                                <strong>{{ $errors->first('last_name') }}</strong>
-                            </span>
-                            @endif
-                        </div>
-
-                        <div class="form-group">
                             <label for="gender">Пол</label><br>
 
                             <div class="custom-control custom-radio custom-control-inline">
                                 <input type="radio" id="male" name="gender" class="custom-control-input" value="1">
-                                <label class="custom-control-label" for="male">Мужской</label>
+                                <label class="custom-control-label" for="male"><i
+                                        class="fas fa-mars"></i>Мужской</label>
                             </div>
                             <div class="custom-control custom-radio custom-control-inline">
                                 <input type="radio" id="female" name="gender" class="custom-control-input" value="2">
-                                <label class="custom-control-label" for="female">Женский</label>
+                                <label class="custom-control-label" for="female"><i
+                                        class="fas fa-venus"></i>Женский</label>
                             </div>
 
                         </div>
 
                         <div class="form-group">
-                            <label for="avatar">Загрузить фото</label>
-                            <img src="" alt="" class="img-thumbnail d-none" id="preview">
+                            <div class="avatar-upload">
+                                <div class="avatar-edit">
+                                    <input id="imageUpload" type="file" accept=".png, .jpg, .jpeg"
+                                           class="form-control{{ $errors->has('avatar') ? ' is-invalid' : '' }}"
+                                           name="avatar"
+                                           value="{{asset('images/ava.png')}}">
+                                    <label for="imageUpload">
+                                        <i class="fas fa-pencil-alt"></i>
+                                    </label>
+                                </div>
+                                <div class="avatar-preview">
+                                    <div id="imagePreview"
+                                         style="background-image:{{asset('images/ava.png')}}">
+                                    </div>
+                                </div>
 
-                            <input id="avatar" type="file"
-                                   class="form-control{{ $errors->has('avatar') ? ' is-invalid' : '' }}" name="avatar"
-                                   value="{{ old('avatar') }}">
-
-                            @if ($errors->has('avatar'))
-                                <span class="invalid-feedback" role="alert">
-                                <strong>{{ $errors->first('avatar') }}</strong>
-                            </span>
-                            @endif
+                                @if ($errors->has('avatar'))
+                                    <span class="invalid-feedback" role="alert">
+                                     <strong>{{ $errors->first('avatar') }}</strong>
+                                    </span>
+                                @endif
+                            </div>
                         </div>
 
 
@@ -83,3 +76,23 @@
     </div>
 
 @endsection
+@push('scripts')
+    <script>
+        function readURL(input) {
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    $('#imagePreview').css('background-image', 'url(' + e.target.result + ')');
+                    $('#imagePreview').hide();
+                    $('#imagePreview').fadeIn(650);
+                }
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        $("#imageUpload").change(function () {
+            readURL(this);
+        });
+
+    </script>
+@endpush

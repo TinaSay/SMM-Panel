@@ -1,12 +1,6 @@
 @extends('layouts.app')
 @section('title','Все задания')
 @section('content')
-    @if(session()->has('success'))
-        <input type="hidden" id="success-session" value="{{ session('success') }}">
-    @elseif((session()->has('fail')))
-        <input type="hidden" id="fail-session" value="{{ session('fail') }}">
-    @endif
-
     @if($tasks->isEmpty())
         <h3>Нет заданий</h3>
     @else
@@ -209,7 +203,6 @@
         $(document).ready(function () {
             $(document).on('click', '.do-action', function (event) {
 
-
                 var $this = $(this),
                     $id = $this.attr('data-id'),
                     $url = '/task/show/' + $id,
@@ -248,7 +241,7 @@
                         }
                     } else {
 {{--                        {{ Session::put('success', 'Подключите аккаунт ' + profData.social + ') }};--}}
-                        toastr.warning('Подключите аккаунт ' + profData.social + ', чтобы продолжить', 'Нет аккаунта ' + profData.social);
+//                         toastr.warning('Подключите аккаунт ' + profData.social + ', чтобы продолжить', 'Нет аккаунта ' + profData.social);
                         window.location.href = '/profile';
                     }
                 });
