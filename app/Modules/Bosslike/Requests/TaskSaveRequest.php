@@ -31,13 +31,17 @@ class TaskSaveRequest extends FormRequest
             return [
                 'service_id' => 'required|exists:services,id',
                 'link' => 'required|url',
-                'points' => 'required|numeric|min:10',
-                'amount' => 'required|numeric|min:10'
+                'points' => 'required|numeric|min:30',
+                'sng_points' => 'nullable|numeric|min:60',
+                'amount' => 'required|numeric|min:10',
+                'sng_amounts' => 'nullable|numeric|min:10'
             ];
         } else {
             return [
-                'points' => 'required|numeric|min:10',
-                'amount' => 'required|numeric|min:10'
+                'points' => 'required|numeric|min:30',
+                'sng_points' => 'nullable|numeric|min:60',
+                'amount' => 'required|numeric|min:10',
+                'sng_amounts' => 'nullable|numeric|min:10',
             ];
         }
 

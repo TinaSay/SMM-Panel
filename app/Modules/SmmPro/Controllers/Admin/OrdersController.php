@@ -2,6 +2,7 @@
 
 namespace App\Modules\SmmPro\Controllers\Admin;
 
+use App\Helpers\GuzzleClient;
 use App\Modules\SmmPro\Requests\OrderRequest;
 use App\Modules\SmmPro\Models\Order;
 use App\Modules\SmmPro\Models\Service;
@@ -67,15 +68,22 @@ class OrdersController extends Controller
         return redirect()->route('orders.index', 'all')->with('success', 'Все изменения сохранены');
     }
 
+
     /**
      * @param $id
      * @return \Illuminate\Http\RedirectResponse
-     * @throws \Exception
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function destroy($id)
+    public function cancel($id)
     {
+        $guzzle = new GuzzleClient();
+
         $order = Order::findOrFail($id);
-        $order->delete();
-        return redirect()->route('orders.index', 'all')->with('success', 'Заказ удален');
+        $order->status = 'cancelled';
+        $order->save();
+
+        $guzzle->refundBalance($order->charge, $order->user->billing_id);
+
+        return redirect()->route('orders.index', 'all')->with('success', 'Заказ отменен. Средства возмещены');
     }
 }

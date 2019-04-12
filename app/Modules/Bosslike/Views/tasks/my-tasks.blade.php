@@ -1,12 +1,47 @@
 @extends('layouts.app')
 @section('title','Мои задания')
 @section('content')
+
+    <div class="additional-sidebar"><span class="additional-sidebar-title">Выберите социальную сеть</span>
+        <ul class="additional-sidebar-select">
+            @foreach($socials as $social)
+                <li>
+                    <a class="additional-sidebar-select-button {{ ($social->id == $selected_social) ? 'selected' : '' }}">
+                        <img src="{{ asset('images/' . $social->icon) }}" alt="{{ $social->name }}">
+                        {{ $social->name }}
+                    </a>
+                    <ul class="additional-sidebar-submenu {{ ($social->id == $selected_social) ? 'active-cat-cover' : '' }}">
+                        <li>
+                            <a class="{{ ($social->id == $selected_social && $all) ? 'active-cat' : '' }}"
+                               href="{{ route('tasks.my', ['social' => $social->id]) }}">
+                                <img src="{{ asset('images/' . $social->icon) }}">
+                                Все задания
+                            </a>
+                        </li>
+                        @foreach($social->services as $service)
+                            <li>
+                                <a class="{{ ($service->id == $selected_service) ? 'active-cat' : '' }}"
+                                   href="{{ route('tasks.my', ['social' => $social->id, 'service' => $service->id]) }}">
+                                    <img src="{{ asset('images/' . $service->icon) }}">
+                                    {{ Bosslike::setServiceName($service->name, 'category') }}
+                                </a>
+                            </li>
+                        @endforeach
+                        <button class="hide">Скрыть</button>
+                    </ul>
+                </li>
+            @endforeach
+        </ul>
+    </div>
+
     @if($tasks->isEmpty())
-        <h3>Нет заданий</h3>
+        <div class="no-orders-container">
+            <h3 class="no-orders-heading">На данный момент у Вас ещё нет заданий.</h3>
+            <div class="ghost-icon"></div>
+        </div>
     @else
         <div class="row justify-content-center">
             @foreach($tasks as $task)
-
                 <div class="col-md-12 card mb-4">
                     <div class="card-body">
                         <div class="card-details my-tasks">
@@ -28,6 +63,8 @@
                                         <i class="fab fa-facebook"></i>
                                     @elseif($task->service->social->name =='Instagram')
                                         <i class="fab fa-instagram"></i>
+                                    @elseif($task->service->social->name =='Youtube')
+                                        <i class="fab fa-youtube"></i>
                                     @else
                                         <i class="fas fa-info-circle"></i>
                                     @endif
@@ -36,43 +73,104 @@
                                     <p>{{ Bosslike::setServiceName($task->service->name) }}
                                         <a href="{{ $task->link }}" target="_blank">
                                             @if($task->service->name=='Subscribe')
-                                                <span> на </span>  {{Bosslike::setTypeName($task->type) }}
+                                                @if($task->service->social->name =='Instagram')
+                                                    <span> пользователя </span>
+                                                @else
+                                                    {{Bosslike::setTypeName($task->type) }}
+                                                @endif
+                                            @elseif($task->service->name=='Comment')
+                                                @if($task->service->social->name =='Instagram')
+                                                    <span> пост </span>
+                                                @else
+                                                    {{Bosslike::setTypeName($task->type) }}
+                                                @endif
+                                            @elseif($task->service->name=='Like')
+                                                @if($task->service->social->name =='Instagram')
+                                                    <span> пост </span>
+                                                @else
+                                                    {{Bosslike::setTypeName($task->type) }}
+                                                @endif
                                             @else
                                                 {{Bosslike::setTypeName($task->type) }}
                                             @endif
-                                            {{$task->post_name}}
-                                        </a></p>
+
+                                        </a>&nbsp;
+                                        @php($priority = ['sng' => 'СНГ', 'uzbsng' => 'УЗБ + СНГ' ])
+                                        {{$task->post_name}}
+                                        @if($task->priority == 'sng' || $task->priority == 'uzbsng')
+                                            ({{$priority[$task->priority]}})
+                                        @else
+                                            (УЗБ)
+                                        @endif
+                                    </p>
                                     @if($tasksDone[$loop->index]<$task->amount)
                                         <p>Запущено {{$task->created_at->format('d.m.y')}}
-                                            в {{$task->created_at->format('h.m')}}</p>
+                                            в {{$task->created_at->format('G.m')}}</p>
                                     @else
                                         <p>
                                             Выполнено {{$task->tasks_done[$tasksDone[$loop->iteration]]->created_at->format('d.m.y')}}
-                                            в {{$task->created_at->format('h.m')}}</p>
+                                            в {{$task->created_at->format('G.m')}}</p>
                                     @endif
                                 </div>
-                                <div class="col-sm-3 col-md-4 col-lg-3">
+                                <div class="col-sm-3 col-md-4 col-lg-4">
 
                                     {{--remaining and total--}}
 
                                     <span class="task-stat">
-                                        <span>
-                                            @if($tasksDone[$loop->index]<$task->amount)
-                                                <i class="fas fa-play-circle"></i>
-                                            @else
-                                                <i class="fas fa-check-circle" style="color:#3490dc"></i>
-                                            @endif
+                                        @if($task->priority == 'sng')
+                                            <span>
+                                                @if($task->bl->count_complete<$task->bl->count)
+                                                    <i class="fas fa-play-circle"></i>
+                                                @else
+                                                    <i class="fas fa-check-circle" style="color:#3490dc"></i>
+                                                @endif
                                             </span>
-                                        <span class="done">{{$tasksDone[$loop->index]}} </span> из
-                                        <span>{{$task->amount}}</span>
-                                    </span>
+                                            <span class="done">{{$task->bl->count_complete}} </span> из
+                                            <span>{{$task->bl->count}}</span>
+                                        @elseif($task->priority == 'uzbsng')
+                                            <p>
+                                                <span>
+                                                    @if($tasksDone[$loop->index]<$task->amount)
+                                                        <i class="fas fa-play-circle"></i>
+                                                    @else
+                                                        <i class="fas fa-check-circle" style="color:#3490dc"></i>
+                                                    @endif
+                                                </span>&nbsp;
+                                                <span class="done">{{$tasksDone[$loop->index]}} </span> &nbsp;из&nbsp;
+                                                <span>{{$task->amount}}</span>
+                                            </p>
+                                            <p>
+                                                <span>
+                                                    @if($task->bl->count_complete<$task->bl->count)
+                                                        <i class="fas fa-play-circle"></i>
+                                                    @else
+                                                        <i class="fas fa-check-circle" style="color:#3490dc"></i>
+                                                    @endif
+                                                </span>&nbsp;
+                                                <span class="done">{{$task->bl->count_complete}} </span> &nbsp;из&nbsp;
+                                                <span>{{$task->bl->count}}</span>
+                                            </p>
+                                        @else
+                                            <span>
+                                                @if($tasksDone[$loop->index]<$task->amount)
+                                                    <i class="fas fa-play-circle"></i>
+                                                @else
+                                                    <i class="fas fa-check-circle" style="color:#3490dc"></i>
+                                                @endif
+                                            </span>
+                                            <span class="done">{{$tasksDone[$loop->index]}} </span> из
+                                            <span class="totalAmount">{{$task->amount}}</span>
+                                        @endif
 
-                                    {{--Button for edit--}}
-                                    <a href="" class="btn btn-sm btn-outline-primary edit" data-toggle="tooltip"
-                                       title="Редактировать" data-id="{{$task->id}}"
-                                       onclick="openEditForm({{$task->id}})"><i
-                                            class="fas fa-edit"></i></a>
-                                    {{--End button for edit--}}
+                                    </span>
+                                    @if($tasksDone[$loop->index]<$task->amount)
+                                        {{--Button for edit--}}
+                                        <a href="" class="btn btn-sm btn-outline-primary edit" data-toggle="tooltip"
+                                           title="Редактировать" data-id="{{$task->id}}"
+                                           onclick="openEditForm({{$task->id}})"><i
+                                                class="fas fa-edit"></i></a>
+                                        {{--End button for edit--}}
+                                    @endif
 
                                     {{--Button for delete--}}
                                     <form action="{{ route('task.delete',$task->id) }}" method="POST" class="d-inline">
@@ -92,11 +190,6 @@
                             </div>
                         </div>
 
-
-                        {{--{{var_dump($task->id)}}
-                        {{dd($task->comments[0]->text)}}--}}
-
-
                         {{--Form for editing--}}
                         <form class="edit-form-{{$task->id}} d-none">
                             <input type="hidden" value="{{ $task->id }}" class="task_id">
@@ -108,34 +201,60 @@
                             </div>
 
                             <div class="form-group">
-                                <label for="points">Оплата исполнителю</label>
+                                <label for="points">Оплата исполнителю для Узбекистана</label>
 
-                                <input id="points" type="number" name="points" value="{{ $task->points }}" min="10"
-                                       class="points form-control{{ $errors->has('points') ? ' is-invalid' : '' }}"
+                                <input id="points" type="number" name="points" value="{{ $task->points }}" min="30"
+                                       class="points form-control"
                                        placeholder="кол.баллов" onfocus="this.placeholder = ''"
                                        onblur="this.placeholder = 'кол.баллов'">
 
-                                @if ($errors->has('points'))
-                                    <span class="invalid-feedback" role="alert">
-                                <strong>{{ $errors->first('points') }}</strong>
-                            </span>
-                                @endif
+                                <span class="invalid-feedback d-none" role="alert">
+                                        <strong>Сумма должна быть не меньше 30</strong>
+                                </span>
                             </div>
 
                             <div class="form-group">
-                                <label for="amount">Количество выполнений</label>
+                                <label for="amount">Количество выполнений для Узбекистана</label>
 
-                                <input id="amount" type="number" name="amount" min="1" value="{{ $task->amount }}"
-                                       class="amount form-control{{ $errors->has('amount') ? ' is-invalid' : '' }}">
+                                <input id="amount" type="number" name="amount" min="10" value="{{ $task->amount }}"
+                                       class="amount form-control">
 
-                                @if ($errors->has('amount'))
-                                    <span class="invalid-feedback" role="alert">
-                                <strong>{{ $errors->first('amount') }}</strong>
-                            </span>
-                                @endif
+                                <span class="invalid-feedback d-none" role="alert">
+                                        <strong>Количество должно быть не меньше 10</strong>
+                                </span>
                             </div>
+                            @if($task->sng_points)
+                                <div class="form-group">
+                                    <label for="sng_points">Оплата исполнителю для СНГ</label>
 
-                            @if(!$task->comments->isEmpty())
+                                    <input id="sng_points" type="number" name="sng_points" min="60"
+                                           value="{{ $task->sng_points }}"
+                                           class="sng_points form-control{{ $errors->has('sng_points') ? ' is-invalid' : '' }}">
+
+                                    @if ($errors->has('sng_points'))
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $errors->first('sng_points') }}</strong>
+                                        </span>
+                                    @endif
+                                </div>
+                            @endif
+                            @if($task->sng_amounts)
+                                <div class="form-group">
+                                    <label for="sng_amounts">Количество выполнений для СНГ</label>
+
+                                    <input id="sng_amounts" type="number" name="sng_amounts" min="10"
+                                           value="{{ $task->sng_amounts }}"
+                                           class="sng_amounts form-control{{ $errors->has('sng_amounts') ? ' is-invalid' : '' }}">
+
+                                    @if ($errors->has('sng_amounts'))
+                                        <span class="invalid-feedback" role="alert">
+                                            <strong>{{ $errors->first('sng_amounts') }}</strong>
+                                        </span>
+                                    @endif
+                                </div>
+                            @endif
+
+                            @if($task->service->name=='Comment')
                                 <p>Комментарии, которые будут добавлять пользователи. Если вам нужны любые комментарии -
                                     просто оставьте эти поля пустыми.
                                 </p>
@@ -171,9 +290,13 @@
                                 <button type="submit" class="btn btn-primary btn-lilac update">
                                     Сохранить
                                 </button>
-                                <a href="{{ route('tasks.my') }}" class="btn btn-primary btn-gray">
+                                <button class="btn btn-primary btn-gray btn-cancel">
                                     Отмена
-                                </a>
+                                </button>
+                                <span class="showPoints">
+                                  {{--<i class="far icon-wallet"></i>--}}
+                                    {{--<span class="totalPoints">0 </span> <span> сумов</span>--}}
+                                </span>
                             </div>
                         </form>
                         {{--End editing form--}}
@@ -181,6 +304,9 @@
 
                 </div>
             @endforeach
+        </div>
+        <div class="">
+            {{ $links }}
         </div>
     @endif
 @endsection
@@ -196,8 +322,20 @@
     <script>
         $(document).ready(function () {
 
-            $('.edit').on('click', function (e) {
+            $('.edit').click(function (e) {
                 e.preventDefault();
+                var _form = $('.edit-form-' + $(this).attr('data-id'));
+                var _points = _form.find('#points').val();
+
+                _form.find('#points').on('change keyup paste', function () {
+                    console.log('true');
+                });
+
+            });
+
+            $('.btn-cancel').on('click', function (e) {
+                e.preventDefault();
+                $(this).closest('form').addClass('d-none');
             });
 
             $('.update').on('click', function (e) {
@@ -207,6 +345,8 @@
                 var _task = _form.find('.task_id').val();
                 var _points = _form.find('.points').val();
                 var _amount = _form.find('.amount').val();
+                var sng_points = _form.find('.sng_points').val();
+                var sng_amounts = _form.find('.sng_amounts').val();
                 var _comments = _form.find('[name="comment_text[]"]');
                 var _commentsArray = [];
 
@@ -221,6 +361,8 @@
                         _token: '{!! csrf_token() !!}',
                         'points': _points,
                         'amount': _amount,
+                        'sng_points': sng_points,
+                        'sng_amounts': sng_amounts,
                         'comment_text': _commentsArray,
                     },
                     dataType: 'JSON',
@@ -230,12 +372,16 @@
 
                         if (response.status == 1) {
                             window.toastr.success(response.message);
+                            getBalance();
+                            _form.closest('.card-body').find('.totalAmount').text(_amount);
+                            // $('#userTopBalance').load(location.href + ' #userTopBalance' + ">*", "");
                         } else {
                             window.toastr.error(response.message);
                         }
                     },
                     error: function () {
-                        window.toastr.error('Введите верные данные');
+                        _form.find('input[type="number"]').addClass('is-invalid');
+                        _form.find('.invalid-feedback').removeClass('d-none')
                     }
                 });
                 e.preventDefault();

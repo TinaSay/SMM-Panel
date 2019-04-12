@@ -1,0 +1,139 @@
+
+.services-catalog-action {
+    text-align: left;
+    font-size: 17px;
+    font-weight: bold;
+}
+
+.services-catalog-group {
+    background: #FFF;
+    padding: 15px 25px;
+    border: 1px solid #dedede;
+    border-radius: 10px;
+    margin-bottom: 30px;
+}
+
+.services-catalog-group button.btn.dropdown-toggle.btn-light {
+    background: #FFF;
+    border: 1px solid #ccc;
+}
+
+.services-catalog-group .dropdown-menu img {
+    display: inline-block;
+    margin-right: 15px;
+}
+
+.services-catalog-group .dropdown-menu span {
+    color: #000;
+}
+
+.services-catalog-group .dropdown-item.active,
+.services-catalog-group .dropdown-item:active {
+    background: #ececec;
+}
+
+.filter-option-inner-inner span img {
+    display: inline-block;
+    margin-right: 15px;
+}
+
+.filter-option-inner-inner span {
+    display: flex;
+    align-items: center;
+}
+
+.services-catalog-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    margin-top: 15px;
+}
+
+.services-catalog-row .services-item {
+    width: 30%;
+    cursor: pointer;
+    margin-bottom: 15px;
+
+}
+
+.services-catalog-row .services-item img {
+    margin: 0 auto;
+    display: block;
+    border-radius: 50%;
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    object-position: center;
+}
+
+.services-catalog-row .services-item .services-item-title {
+    display: block;
+    text-align: center;
+    margin: 10px auto;
+    font-size: 18px;
+}
+
+.services-products {
+    justify-content: center;
+}
+
+.services-products .services-item {
+    /* border: 1px solid #999; */
+    border-radius: 10px;
+    padding: 15px 10px;
+    position: relative;
+}
+
+.services-products .services-item input {
+    height: 38px;
+    display: flex;
+    align-items: center;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    width: 100%;
+    padding: 5px;
+}
+
+.services-products .services-item .services-item-price {
+    display: block;
+    text-align: center;
+    margin: 5px auto;
+    font-size: 24px;
+    font-weight: bold;
+    color: #555689;
+}
+
+.services-products .services-item .services-item-amount {
+    display: block;
+    text-align: center;
+    margin: 5px auto;
+    font-size: 16px;
+}
+
+.services-item-btn {
+    display: block;
+    margin: 0 auto;
+    text-align: center;
+    border: 2px solid #555689;
+    border-radius: 5px;
+    background: #555689;
+    color: #FFF;
+    margin-bottom: 5px;
+    font-size: 18px;
+    padding: 3px 15px;
+    transition: all 500ms;
+}
+
+.services-item-btn:hover {
+    background: #FFF;
+    color: #555689;
+}
+
+.services-products .services-item .read-more {
+    position: absolute;
+    right: 0;
+    top: 0;
+    color: #555689;
+    background: transparent;
+    border: none;
+}

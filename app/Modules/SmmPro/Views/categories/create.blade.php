@@ -47,20 +47,29 @@
                             </span>
                     @endif
                 </div>
-
                 <div class="form-group">
-                    <label for="icon">Иконка</label>
-                    <img src="" alt="" class="img-thumbnail d-none" id="preview">
+                    <div class="avatar-upload">
+                        <div class="avatar-edit">
+                            <input id="imageUpload" type="file" accept=".png, .jpg, .jpeg"
+                                   class="form-control{{ $errors->has('icon') ? ' is-invalid' : '' }}"
+                                   name="icon"
+                                   value="{{asset('images/ava.png')}}">
+                            <label for="imageUpload">
+                                <i class="fas fa-pencil-alt"></i>
+                            </label>
+                        </div>
+                        <div class="avatar-preview">
+                            <div id="imagePreview"
+                                 style="background-image:{{asset('images/ava.png')}}">
+                            </div>
+                        </div>
 
-                    <input id="icon" type="file"
-                           class="form-control{{ $errors->has('icon') ? ' is-invalid' : '' }}" name="icon"
-                           value="{{ old('icon') }}">
-
-                    @if ($errors->has('icon'))
-                        <span class="invalid-feedback" role="alert">
-                                <strong>{{ $errors->first('icon') }}</strong>
-                            </span>
-                    @endif
+                        @if ($errors->has('icon'))
+                            <span class="invalid-feedback" role="alert">
+                                     <strong>{{ $errors->first('icon') }}</strong>
+                                    </span>
+                        @endif
+                    </div>
                 </div>
 
                 <div class="form-group">
@@ -158,6 +167,21 @@
                 }).fail(function (error) {
                     console.log(error);
                 });
+            });
+            function readURL(input) {
+                if (input.files && input.files[0]) {
+                    var reader = new FileReader();
+                    reader.onload = function (e) {
+                        $('#imagePreview').css('background-image', 'url(' + e.target.result + ')');
+                        $('#imagePreview').hide();
+                        $('#imagePreview').fadeIn(650);
+                    }
+                    reader.readAsDataURL(input.files[0]);
+                }
+            }
+
+            $("#imageUpload").change(function () {
+                readURL(this);
             });
         });
     </script>

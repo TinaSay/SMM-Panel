@@ -4,6 +4,8 @@ namespace App\Modules\Bosslike\Models;
 
 use App\User;
 use Illuminate\Database\Eloquent\Model;
+use App\Helpers\GuzzleClient;
+use GuzzleHttp\Client;
 
 /**
  * App\Modules\Bosslike\Models\Task
@@ -51,8 +53,11 @@ use Illuminate\Database\Eloquent\Model;
 class Task extends Model
 {
 
-    const INSTAGRAM_USERNAME = 'picstar.uz';
-    const INSTAGRAM_PASSWORD = 'secretsecret1234';
+//    const INSTAGRAM_USERNAME = 'picstar.uz';
+//    const INSTAGRAM_PASSWORD = 'picstar17';
+
+    const INSTAGRAM_USERNAME = 'walle_017';
+    const INSTAGRAM_PASSWORD = 'akiakiaki17';
 
     const MONEY_IN = 'in';
     const MONEY_OUT = 'out';
@@ -60,7 +65,7 @@ class Task extends Model
      * @var array
      */
     protected $fillable = [
-        'user_id', 'service_id', 'link', 'picture', 'type', 'points', 'amount', 'done', 'bosslike_id', 'sng_amounts', 'sng_points'
+        'user_id', 'service_id', 'link', 'picture', 'type', 'points', 'amount', 'done', 'bosslike_id', 'priority', 'sng_amounts', 'sng_points'
     ];
 
     /**
@@ -98,5 +103,25 @@ class Task extends Model
     public function transactions()
     {
         return $this->hasMany(Transactions::class);
+    }
+
+    public function bosslike(){
+        if ($this->bosslike_id != null){
+            $client = new Client();
+            $url = 'https://api-public.bosslike.ru/v1/';
+            $action = 'tasks/'.$this->bosslike_id;
+            $data = $client->request('GET', $url . $action,
+                [
+                    'headers' => [
+                        'X-Api-Key' => env('BOSSLIKE_PUBLIC'),
+                        'Accept' => 'application/json',
+                    ],
+                    'http_errors' => false
+                ]);
+            $result = json_decode($data->getBody()->getContents());
+            return $result->data->task;
+        }
+        return $this;
+
     }
 }

@@ -2,7 +2,12 @@
 @section('title','Заказы')
 @section('content')
     @if($orders->isEmpty())
-        <h3>Нет заказов</h3>
+        <div class="no-orders-container">
+            <h3 class="no-orders-heading">На данный момент у Вас ещё нет заказов.</h3>
+            <div class="ghost-icon"></div>
+        </div>
+
+
     @else
         @if(session()->has('success'))
             <input type="hidden" id="success-session" value="{{ session('success') }}">
@@ -19,7 +24,6 @@
                     <th style="background-image:none;">Цена</th>
                     <th style="background-image:none;">Количество</th>
                     <th style="background-image:none;">Ссылка</th>
-                    <th style="background-image:none;">Статус</th>
                     <th style="background-image:none;">Дата заказа</th>
                     <th style="background-image:none;">Действие</th>
                 </tr>
@@ -33,24 +37,16 @@
                         <td>{{ $order->charge }}</td>
                         <td>{{ $order->quantity }}</td>
                         <td width="200" style="word-break: break-all; display: block;">{{ $order->link }}</td>
-                        <td>{{ $order->status }}</td>
-                        <td width="150" style="display:block;">{{ $order->created_at }}</td>
+                        <td width="150">{{ $order->created_at }}</td>
                         <td width="150">
-                            <a href="{{ route('order.edit', $order->id) }}"
-                               class="btn btn-sm btn-outline-primary"
-                               data-toggle="tooltip" data-original-title="Редактировать">
-                                <i class="fa fa-edit"></i></a>
-                            <form action="{{ route('order.destroy', $order->id) }}" method="POST"
-                                  style="display:inline-block">
-                                @method('DELETE')
-                                @csrf
-                                <button class="btn btn-sm btn-outline-danger" data-toggle="tooltip"
-                                        data-original-title="Удалить" onclick="return confirm('Удалить безвозвратно?')">
-                                    <i class="fa fa-trash"></i>
-                                </button>
-                            </form>
+                            @if($order->status=='cancelled')
+                                <a class="btn btn-sm disabled">Отменен</a>
+                            @else
+                                <a href="{{ route('order.cancel', $order->id) }}"
+                                   class="btn btn-sm btn-outline-primary cancel">
+                                    Отменить</a>
+                            @endif
                         </td>
-
                     </tr>
                 @endforeach
                 </tbody>
@@ -58,7 +54,7 @@
         </div>
     @endif
     <div class="m-t-20">
-        <a href="{{ route('catalog') }}" class="btn btn-info btn-lilac">На главную</a>
+        <a href="{{ route('catalog') }}" class="btn btn-info btn-lilac back-to-home">На главную</a>
     </div>
 @endsection
 @push('scripts')
@@ -77,6 +73,11 @@
                         last: '»'
                     },
                 }
+            });
+
+            $('.cancel').on('click', function (e) {
+                $(this).text('Отменен').removeClass('btn-outline-primary').addClass('disabled');
+
             });
         });
     </script>

@@ -6,8 +6,8 @@ use App\Modules\SmmPro\Requests\CategorySaveRequest;
 use App\Modules\SmmPro\Models\Category;
 use App\Http\Controllers\Controller;
 use App\Modules\SmmPro\Models\Service;
+use App\Modules\SmmPro\Models\Order;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Storage;
 
 /**
  * Class CategoriesController
@@ -114,22 +114,21 @@ class CategoriesController extends Controller
      */
     public function store(CategorySaveRequest $request)
     {
-        $file = $request->file('icon');
-
-        if ($file) {
-            $ext = $file->getClientOriginalExtension();
-            $filename = 'avatar' . time() . '.' . $ext;
-            Storage::putFileAs('public/uploads/', $file, $filename);
-        } else {
-            $filename = null;
-        }
-
         $category = new Category();
 
         $category->name = $request->input('name');
         $category->description = $request->input('description');
         $category->alias = $request->input('alias');
-        $category->icon = $filename;
+
+        $file = $request->file('icon');
+
+        if ($file) {
+            $avatar = self::storeAvatar($file);
+            $category->icon = $avatar;
+
+        } else {
+            $category->icon = null;
+        }
         $category->active = $request->input('active');
 
         $rootCategory = $request->input('root_category');
@@ -175,12 +174,12 @@ class CategoriesController extends Controller
         $category->active = $request->input('active');
 
         $file = $request->file('icon');
+
         if (filled($file)) {
-            $ext = $file->getClientOriginalExtension();
-            $filename = 'avatar' . time() . '.' . $ext;
-            Storage::putFileAs('public/uploads/', $file, $filename);
-            $category->icon = $filename;
+            $avatar = self::storeAvatar($file);
+            $category->icon = $avatar;
         }
+
         $rootCategory = $request->input('root_category');
         $rootCategory2 = $request->input('category_id');
 
@@ -207,13 +206,17 @@ class CategoriesController extends Controller
     public function destroy($id)
     {
         $category = Category::find($id);
-        $service = Service::where('category_id', '=', $category->id)->first();
-        if ($service) {
-            return response()->json([
-                'status' => 0,
-                'message' => 'Нельзя удалить эту категорию! К ней относится сервис'
-            ]);
+
+        $services = Service::where('category_id', $id)->get();
+        foreach ($services as $service) {
+            $orders = Order::where('service_id', $service->id)->delete();
+            $service->delete();
         }
+//        $services->delete();
+//        if ($category->services()) {
+//            $category->services()->delete();
+//
+//        }
 
         $category->delete();
         return response()->json([
@@ -224,11 +227,15 @@ class CategoriesController extends Controller
 
     public function ajaxGetDescendants(Request $request)
     {
-        $descendants = Category::defaultOrder()->withDepth()->descendantsOf($request->root);
+        $descendants = Category::defaultOrder()->descendantsOf($request->root)->toTree();
 
         return response()->json(['categories' => $descendants]);
     }
 
+    /**
+     * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
     public function ajaxGetAncestors(Request $request)
     {
         $ancestors = Category::ancestorsOf($request->input('id'));
@@ -252,5 +259,17 @@ class CategoriesController extends Controller
         return response()->json([
             'rootCategories' => $root
         ]);
+    }
+
+    /**
+     * @param $file
+     * @return string
+     */
+    public static function storeAvatar($file)
+    {
+        $ext = $file->getClientOriginalExtension();
+        $filename = 'icon' . time() . '.' . $ext;
+        $file->storeAs('uploads/icons', $filename);
+        return $filename;
     }
 }

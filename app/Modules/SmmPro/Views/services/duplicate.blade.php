@@ -1,5 +1,5 @@
 @extends('layouts.app')
-@section('title','Сервис')
+@section('title','Редактировать сервис')
 @section('content')
     <div class="row">
         <div class="col-md-8">
@@ -15,8 +15,8 @@
 
                     @if ($errors->has('name'))
                         <span class="invalid-feedback" role="alert">
-                            <strong>{{ $errors->first('name') }}</strong>
-                        </span>
+                                <strong>{{ $errors->first('name') }}</strong>
+                            </span>
                     @endif
                 </div>
 
@@ -24,16 +24,17 @@
                     <label for="description">Описание</label>
 
                     <textarea name="description" id="description" cols="45"
-                              rows="8">{{ $service->description }}</textarea>
+                              rows="8"
+                              class="form-control{{ $errors->has('description') ? ' is-invalid' : '' }}">{{ $service->description }}</textarea>
                     @if ($errors->has('description'))
                         <span class="invalid-feedback" role="alert">
-                            <strong>{{ $errors->first('description') }}</strong>
-                        </span>
+                                <strong>{{ $errors->first('description') }}</strong>
+                            </span>
                     @endif
                 </div>
 
                 <div class="form-group">
-                    <label for="category_id">Категория</label>
+                    <label for="root_category">Категория</label>
 
                     <select
                         class="selectpicker btn-group bootstrap-select dropup form-control{{ $errors->has('root_category') ? ' is-invalid' : '' }}"
@@ -44,7 +45,7 @@
 
                         @foreach($parentCategories as $parentCategory)
                             <option
-                                value="{{ $parentCategory->id }}" {{ $parentCategory->id == $service->category_id ? 'selected' : '' }}>
+                                value="{{ $parentCategory->id }}"{!! $parentCategory->id == $rootCategory->id ? ' selected' :'' !!}>
                                 {{ $parentCategory->name }}
                             </option>
                         @endforeach
@@ -52,59 +53,91 @@
                     </select>
                     @if ($errors->has('root_category'))
                         <span class="invalid-feedback" role="alert">
-                            <strong>{{ $errors->first('root_category') }}</strong>
-                        </span>
+                                <strong>{{ $errors->first('root_category') }}</strong>
+                            </span>
                     @endif
                 </div>
 
                 <div class="form-group">
-                    <select
-                        class="selectpicker btn-group bootstrap-select dropup form-control{{ $errors->has('category_id') ? ' is-invalid' : '' }}"
-                        data-style="form-control"
-                        name="category_id"
-                        id="category_id">
+                    <select class="selectpicker btn-group bootstrap-select dropup form-control"
+                            data-style="form-control"
+                            name="category_id"
+                            id="category_id">
                         <option disabled selected value> -- выберите категорию услуги --</option>
+                        @if ($categories->isNotEmpty())
+                            @foreach ($categories as $c)
+                                <option value="{{ $c->id }}"{!! $c->id == $service->category_id ? ' selected' : '' !!}>{{ $c->name }}</option>
+                            @endforeach
+                        @endif
                     </select>
-                    @if ($errors->has('category_id'))
-                        <span class="invalid-feedback" role="alert">
-                            <strong>{{ $errors->first('category_id') }}</strong>
-                        </span>
-                    @endif
                 </div>
 
                 <div class="form-group">
-                    <label for="quantity">Количество</label>
+                    <fieldset id="multi-input">
+                        <legend style="font-size: 14px;"><b>Добавьте количество и цену</b></legend>
+                        @if ($quantity->isNotEmpty())
+                            @foreach ($quantity as $key => $value)
+                                <div class="field-wrapper row mt-1" id="field-{{ $key }}" data-index="0">
+                                    <div class="col-md-5">
+                                        <input type="text" name="quantities[{{ $key }}]" value="{{ $value->quantity }}" class="form-control" placeholder="Количество">
+                                    </div>
+                                    <div class="col-md-5">
+                                        <input type="text" name="prices[{{ $key }}]" value="{{ $value->price }}" class="form-control" placeholder="Цена">
+                                    </div>
+                                    <div class="col-md-2">
+                                        @if (!$loop->first)
+                                            <button class="btn btn-danger btn-remove" type="button"><i class="fa fa-minus"></i></button>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        @else
+                            <div class="field-wrapper row" id="field-0" data-index="0">
+                                <div class="col-md-5">
+                                    <input type="text" name="quantities[0]" class="form-control" placeholder="Количество">
+                                </div>
+                                <div class="col-md-5">
+                                    <input type="text" name="prices[0]" class="form-control" placeholder="Цена">
+                                </div>
+                                <div class="col-md-2">
 
-                    <input id="quantity" type="number"
-                           class="form-control{{ $errors->has('quantity') ? ' is-invalid' : '' }}"
-                           name="quantity" value="{{ $service->quantity }}">
+                                </div>
+                            </div>
+                        @endif
+                    </fieldset>
+
+                    <div class="multi-input-controls mt-2">
+                        <button id="add" class="btn btn-primary" type="button">
+                            <i class="fa fa-plus"></i>
+                            Добавить поля
+                        </button>
+                    </div>
 
                     @if ($errors->has('quantity'))
                         <span class="invalid-feedback" role="alert">
-                            <strong>{{ $errors->first('quantity') }}</strong>
-                        </span>
+                                <strong>{{ $errors->first('quantity') }}</strong>
+                            </span>
                     @endif
                 </div>
 
                 <div class="form-group">
-                    <label for="service_api">Добавить API</label><br>
+                    <label for="service_api">API создания заказа</label>
 
-                    <textarea name="service_api" id="service_api" cols="45"
-                              rows="5"
-                              class="form-control{{ $errors->has('service_api') ? ' is-invalid' : '' }}">{{ $service->service_api }}</textarea>
+                    <textarea name="service_api" id="service_api" cols="45" rows="5"
+                              class="form-control{{ $errors->has('service_api') ? ' is-invalid' : '' }}"
+                              required>{{ $service->service_api }}</textarea>
 
                     @if ($errors->has('service_api'))
                         <span class="invalid-feedback" role="alert">
-                            <strong>{{ $errors->first('service_api') }}</strong>
-                        </span>
+                                <strong>{{ $errors->first('service_api') }}</strong>
+                            </span>
                     @endif
                 </div>
 
                 <div class="form-group">
-                    <label for="service_order_api">Добавить чес-статус API</label><br>
+                    <label for="service_order_api">API проверки статуса заказа</label>
 
-                    <textarea name="service_order_api" id="service_order_api" cols="45"
-                              rows="5"
+                    <textarea name="service_order_api" id="service_order_api" cols="45" rows="5"
                               class="form-control{{ $errors->has('service_order_api') ? ' is-invalid' : '' }}">{{ $service->service_order_api }}</textarea>
 
                     @if ($errors->has('service_order_api'))
@@ -131,21 +164,7 @@
                     @endif
                 </div>
 
-                <div class="form-group">
-                    <label for="price">Цена</label>
-
-                    <input id="price" type="text"
-                           class="form-control{{ $errors->has('price') ? ' is-invalid' : '' }}"
-                           name="price" value="{{ $service->price }}">
-
-                    @if ($errors->has('price'))
-                        <span class="invalid-feedback" role="alert">
-                            <strong>{{ $errors->first('price') }}</strong>
-                        </span>
-                    @endif
-                </div>
-
-                <div class="form-group">
+                {{--<div class="form-group">
                     <label for="reseller_price">Цена реселлеру</label>
 
                     <input id="reseller_price" type="text"
@@ -154,10 +173,10 @@
 
                     @if ($errors->has('reseller_price'))
                         <span class="invalid-feedback" role="alert">
-                        <strong>{{ $errors->first('reseller_price') }}</strong>
-                    </span>
+                                <strong>{{ $errors->first('reseller_price') }}</strong>
+                            </span>
                     @endif
-                </div>
+                </div>--}}
 
                 <div class="form-group">
                     <label for="active">Активна</label>
@@ -175,14 +194,14 @@
                     </select>
                     @if ($errors->has('active'))
                         <span class="invalid-feedback" role="alert">
-                            <strong>{{ $errors->first('active') }}</strong>
-                        </span>
+                                <strong>{{ $errors->first('active') }}</strong>
+                            </span>
                     @endif
                 </div>
 
                 <div class="form-group">
                     <button type="submit" class="btn btn-primary btn-lilac">
-                        Сохранить
+                        Обновить
                     </button>
                     <a class="btn btn-info btn-gray" href="{{ route('services.index') }}">
                         Отмена
@@ -194,53 +213,54 @@
 @endsection
 
 @push('scripts')
-    <script>
-        $(function () {
-            // call ajax to get current category
-            loadCategories({{ $service->category_id }});
+<script>
+    $(function () {
+        // handle category change
+        $('#root_category').on('change', function (e) {
 
-            // handle category change
-            $('#root_category').on('change', function (e) {
+            var _root = $(this).val();
+            var _categorySelect = $('#category_id');
+            var _currentId = {{ $service->category_id }};
 
-                var _root = $(this).val();
-                var _categorySelect = $('#category_id');
+            $('option:not(:disabled)', _categorySelect).remove();
 
-                $('option:not(:disabled)', _categorySelect).remove();
-
-                $.post('/ajax/get-descendants', {
-                    root: _root,
-                    _token: '{!! csrf_token() !!}'
-                }, function (response) {
-                    var _s = {{ $service->category_id }}
-
-                    $.each(response.categories, function (i, k) {
-
-                        _categorySelect.append('<option value="' + k.id + '">' + ("&nbsp;&nbsp;&nbsp;".repeat(k.depth - 1)) + k.name + '</option>');
-                        if (k.id == _s) {
-                            $('#category_id option[value=' + _s + ']').attr('selected', true);
-                        }
-                    });
-                }).fail(function (error) {
-                    console.log(error);
+            $.post('/ajax/get-descendants', {
+                root: _root,
+                _token: '{!! csrf_token() !!}'
+            }, function (response) {
+                $.each(response.categories, function (i, k) {
+                    _categorySelect.append('<option value="' + k.id + '">' + ("&nbsp;&nbsp;&nbsp;".repeat(k.depth - 1)) + k.name + '</option>');
+                    $('#category_id option[value=' + _currentId + ']').attr('selected', true);
                 });
+            }).fail(function (error) {
+                console.log(error);
+            });
+        });
+
+        $('#add').click(function () {
+            var lastField = $('#multi-input div.field-wrapper:last');
+            var id = (lastField && lastField.length && lastField.data('index') + 1) || 1;
+            var fieldWrapper = $('<div class="field-wrapper row mt-1" id="field-' + id + '" />');
+
+            fieldWrapper.attr('data-index', id);
+
+            var fieldQuantity = $('<div class="col-md-5"><input type="text" class="form-control" name="quantities[' + id + ']" placeholder="Количество"></div>');
+            var fieldPrice = $('<div class="col-md-5"><input type="text" class="form-control" name="prices[' + id + ']" placeholder="Цена"></div>');
+            var removeButton = $('<div class="col-md-2"><button class="btn btn-danger" type="button"><i class="fa fa-minus"></i></button></div>');
+
+            removeButton.click(function () {
+                $(this).parent().remove();
             });
 
-            function loadCategories($id) {
-                var _rootCategorySelect = $('#root_category');
-                var _categorySelect = $('#category_id');
-
-                $.post('/ajax/get-ancestors', {
-                    id: $id,
-                    _token: '{!! csrf_token() !!}'
-                }, function (response) {
-                    _rootCategorySelect.val(response.root.id);
-                    _rootCategorySelect.trigger('change');
-
-                    _categorySelect.val($id);
-                }).fail(function (error) {
-                    console.log(error);
-                });
-            }
+            fieldWrapper.append(fieldQuantity);
+            fieldWrapper.append(fieldPrice);
+            fieldWrapper.append(removeButton);
+            $("#multi-input").append(fieldWrapper);
         });
-    </script>
+
+        $('.btn-remove').click(function () {
+            $(this).parent().parent().remove();
+        });
+    });
+</script>
 @endpush

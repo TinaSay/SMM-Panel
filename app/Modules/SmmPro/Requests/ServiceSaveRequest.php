@@ -31,12 +31,12 @@ class ServiceSaveRequest extends FormRequest
             'root_category' => 'required|numeric|exists:smmpro_categories,id',
             'name' => 'required|string|min:3|max:255',
             'description' => 'nullable|string',
-            'quantity' => 'required|numeric',
+            'quantities' => 'required',
             'service_api' => 'required|string',
             'service_order_api' => 'required|string',
             'type' => 'required|string',
-            'price' => 'required',
-            'reseller_price' => 'required',
+            'prices' => 'required',
+//            'reseller_price' => 'required',
             'active' => 'required|boolean',
         ];
     }

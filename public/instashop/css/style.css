@@ -1,0 +1,227 @@
+html, body, div, span,
+h1, h2, h3, h4, h5, h6, p,
+a, ol, ul, li,
+form, label,
+table, caption, tbody, tfoot,
+thead, tr, th, td,
+footer, header, menu, nav, section{
+	margin: 0;
+	padding: 0;
+	border: 0;
+	vertical-align: baseline;
+}
+article, aside, details, figcaption, figure,
+footer, header, hgroup, menu, nav, section {
+	display: block;
+}
+body {
+	line-height: 1;
+  background: #F9F9F9;
+}
+ol, ul {
+	list-style: none;
+}
+table {
+	border-collapse: collapse;
+	border-spacing: 0;
+}
+a,
+button:focus,
+.btn:focus{
+	outline: none;
+	box-shadow: none;
+}
+img{
+	max-width: 100%;
+}
+body{
+	min-width: 320px;
+  background: #F9F9F9;
+}
+a,
+a:hover,
+a:focus{
+	text-decoration: none;
+}
+.search-anything .row{
+  -ms-align-items: center;
+  align-items: center;
+}
+.search-anything .contaier{
+  display: -webkit-flex;
+  display: -moz-flex;
+  display: -ms-flex;
+  display: -o-flex;
+  display: flex;
+}
+.search-anything .caption{
+  text-align: center; 
+}
+.search-anything .caption h1 {
+  color: #555;
+}
+.hashtags-item {
+  display: flex;
+  justify-content: space-between;
+  max-width: 550px;
+  padding: 20px;
+  background: #fff;
+  border-radius: 5px;
+  margin: 10px auto;
+  border: 1px solid rgba(0, 0, 0, 0.125);
+}
+.hashtags-item .text p{
+  color: #444068;
+}
+.hashtags-item .posts span{
+  color: #7e7e7e;
+}
+.hashtags{
+  height: 100vh;
+  overflow-x: hidden;
+}
+.search-item form{
+  margin-top: 30px;
+}
+.filter{
+  display: none;
+  padding-top: 30px;
+}
+.filter-item {
+  padding: 0 20px;
+  background: #ccc;
+  height: 60px;
+  line-height: 60px;
+  margin-top: 60px;
+  margin-bottom: 30px;
+  text-align: center;
+}
+.gallery-item {
+  margin: 20px 0;
+  position: relative;
+}
+.insta-ava {
+  width: 40px;
+  height: 40px;
+  position: absolute;
+  top: -20px;
+  left: -20px;
+  border-radius: 50%;
+  z-index: 9;
+  border: 1px solid #e3e3e3;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+}
+.hvrbox-layer_bottom {
+  display: block;
+}
+.hvrbox-top {
+  opacity: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  padding: 15px;
+  -moz-transition: all 0.4s ease-in-out 0s;
+  -webkit-transition: all 0.4s ease-in-out 0s;
+  -ms-transition: all 0.4s ease-in-out 0s;
+  transition: all 0.4s ease-in-out 0s;
+}
+.gallery-item:hover .hvrbox-top,
+.gallery-item.active .hvrbox-top {
+  opacity: 1;
+}
+.hvrbox-text {
+  text-align: center;
+  font-size: 18px;
+  display: inline-block;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  -moz-transform: translate(-50%, -50%);
+  -webkit-transform: translate(-50%, -50%);
+  -ms-transform: translate(-50%, -50%);
+  transform: translate(-50%, -50%);
+  width: 100%;
+}
+.hvrbox-text_mobile {
+  font-size: 15px;
+  border-top: 1px solid rgb(179, 179, 179); /* for old browsers */
+  border-top: 1px solid rgba(179, 179, 179, 0.7);
+  margin-top: 5px;
+  padding-top: 2px;
+  display: none;
+}
+.gallery-item.active .hvrbox-text_mobile {
+  display: block;
+}
+.modal-img {
+  max-width: 825px;
+  border: 1px solid rgba(0, 0, 0, 0.125);
+  padding: 10px;
+  margin: 30px auto;
+  background: #fff;
+}
+.modal-img .close{
+  display: -webkit-flex;
+  display: -moz-flex;
+  display: -ms-flex;
+  display: -o-flex;
+  display: flex;
+  font-size: 16px;
+  margin-right: 22px;
+  color: #aaa;
+  opacity: 1;
+}
+.modal-img .close .fa{
+  margin-right: 4px;
+}
+.modal-img-body {
+  max-width: 575px;
+  margin: auto;
+  border: 1px solid rgba(0, 0, 0, 0.125);
+  padding: 10px;
+}
+.modal-img-body .bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 12px;
+}
+.modal-img-body .tags {
+  padding-left: 10px;
+}
+.modal-img-body .tags a {
+  margin: 0 2px;
+}
+.modal-img-body .ava {
+  border: 1px solid #c28b8b;
+  border-radius: 50%;
+  width: 40px;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.modal-img-body .ava img {
+  max-width: 25px;
+}
+.modal-img-body .info{
+  display: -webkit-flex;
+  display: -moz-flex;
+  display: -ms-flex;
+  display: -o-flex;
+  display: flex;
+  margin-top: 8px;
+}
+.modal-img-body .info li{
+  margin-right: 6px;
+  font-size: 12px;
+  color: #878787;
+}

@@ -4,6 +4,7 @@ namespace App\Modules\SmmPro\Controllers;
 
 use App\Helpers\GuzzleClient;
 use App\Modules\SmmPro\Models\Service;
+use App\Modules\SmmPro\Requests\OrderRequest;
 use Illuminate\Http\Request;
 use App\Modules\SmmPro\Models\Order;
 use App\Http\Controllers\Controller;
@@ -45,23 +46,25 @@ class MyOrdersController extends Controller
     }
 
     /**
-     * @param Request $request
-     * @return \Illuminate\Http\JsonResponse
+     * @param OrderRequest $request
+     * @return \Illuminate\Http\RedirectResponse
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
-    public function api(Request $request)
+    public function api(OrderRequest $request)
     {
         $serviceId = $request->input('servid');
         $service = Service::findOrFail($serviceId);
         $link = $request->input('link');
         $order_id = 0;
         $start_count = 0;
-        $quantity = $service->quantity;
+        $quantity = $request->qty;
+        $price = $service->quantity()->where('quantity', $quantity)->first();
         $balance = $this->guzzle->getUserBalance() / 100;
-        $charge = $service->price;
+        $charge = $price->price;
 
         if ($balance < $charge) {
-            return response()->json('У вас недостаточно средств на балансе', 422);
+            toast()->error('У вас недостаточно средств на балансе', 'Неудача');
+            return back();
         } else {
             if (stripos($service['service_api'], 'justanotherpanel') !== false) {  // Justanotherpanel
                 $URL = str_replace('[QUANTITY]', $quantity, $service['service_api']);
@@ -108,7 +111,8 @@ class MyOrdersController extends Controller
                 }
                 $order_id = $content->data->order_id;
             } else { // в любом другом случае
-                return response()->json('Внутренняя ошибка сервиса', 422);
+                toast()->error('Внутренняя ошибка сервиса', 'Неудача');
+                return back();
             }
 
             $order = new Order();
@@ -125,8 +129,8 @@ class MyOrdersController extends Controller
             $order->save();
 
             $this->guzzle->chargeClient($charge);
-
-            return response()->json($order);
+            return back()->withOrder($order);
+//            return response()->json($order);
         }
     }
 }

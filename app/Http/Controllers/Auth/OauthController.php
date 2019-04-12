@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Http\Request;
+use Bosslike;
 
 /**
  * Class OauthController
@@ -32,9 +33,8 @@ class OauthController extends Controller
      */
     public function login(Request $request)
     {
-        $config = Config::get('services.oauthConfig');
-
         try {
+            $config = Config::get('services.oauthConfig');
             $adapter = new BillingOauthProvider($config);
 
             $adapter->authenticate($request->all());
@@ -47,38 +47,44 @@ class OauthController extends Controller
                 throw new \Exception('Your account is banned.');
             }
 
-            $user = User::where('email', $userProfile->email)->first();
+            $user = User::where('billing_id', $userProfile->identifier)
+                ->first();
 
             if ($user) { // Log in
                 $request->session()->put('user_token', $userProfile->token);
                 if ($user->billing_id == 0) {
                     $user->update([
-                        'billing_id' => $userProfile->identifier
+                        'billing_id' => $userProfile->identifier,
                     ]);
                 }
+
                 Auth::login($user);
             } else { // Register and log in
                 $request->session()->put('user_token', $userProfile->token);
-
-                $user = User::create([
+                $user = [
                     'billing_id' => $userProfile->identifier,
                     'login' => $userProfile->username,
                     'email' => $userProfile->email,
                     'password' => Hash::make(str_random(8)),
                     'role_id' => 2,
                     'ip' => request()->ip(),
-                ]);
+                ];
+
+                $user = User::create($user);
 
                 Auth::login($user);
             }
 
             $adapter->disconnect();
         } catch (\Exception $e) {
-            echo 'Oops, we ran into an issue! ' . $e->getMessage() . ' in ' . $e->getFile() . ' line ' . $e->getLine();
+            echo 'Oops, we ran into an issue! ' . $e->getMessage().' in '.$e->getFile().' line '.$e->getLine();
             exit();
         }
 
-        return redirect()->route('home');
-
+        return redirect('/');
     }
+
+
+
+
 }

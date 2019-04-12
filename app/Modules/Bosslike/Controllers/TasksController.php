@@ -3,11 +3,14 @@
 namespace App\Modules\Bosslike\Controllers;
 
 use App\Helpers\GuzzleClient;
+use App\Modules\Bosslike\Models\Social;
 use App\Modules\Bosslike\Models\SocialUser;
 use App\Modules\Bosslike\Models\Task;
 use App\Http\Controllers\Controller;
 use App\Modules\Bosslike\Models\TaskComments;
 use App\Modules\Bosslike\Services\BosslikeService;
+use App\Modules\Instashop\Models\Instashop;
+use App\Modules\SmmPro\Models\Service;
 use App\User;
 use Hybridauth\HttpClient\Guzzle;
 use InstagramScraper\Instagram;
@@ -39,12 +42,45 @@ class TasksController extends Controller
         $this->guzzle = $client;
     }
 
-    public function index()
+    public function index(Request $request, Task $task, $social = null, $service = null)
     {
+        $task = $task->newQuery();
+        $all = true;
+        $task->whereHas('tasks_done', function ($q) {
+            $q->where('tasks_done.user_id', \Auth::id());
+        }, '=', 0)->where('user_id', '!=', \Auth::id())
+//            ->whereNull('priority')->orWhere('priority', 'uzbsng')
+//                ->where('priority', '!=', 'sng')->orWhereNull('priority')
+            ->where(function($query) {
+                $query->where('priority', '!=', 'sng')->orWhereNull('priority');
+            })
+            ->where('done', 0)
+            ->orderBy('points', 'DESC')
+            ->orderBy('created_at', 'DESC');
+
+        if (!empty($social)) {
+            $task->whereHas('service', function ($q) use ($social) {
+                $q->where('social_id', $social);
+            });
+        }
+
+        if (!empty($service)) {
+            $all = false;
+            $task->where('service_id', $service);
+        }
+
+//        $task->where('priority', '!=', 'sng');
+
+        $tasks = $task->take(30)->get();
+        $socials = Social::with('services')->where('name', '!=', 'Facebook')
+            ->where('name', '!=', 'Twitter')->get();
+
         return view('bosslike::tasks.all', [
-            'tasks' => Task::whereHas('tasks_done', function ($q) {
-                $q->where('tasks_done.user_id', \Auth::id());
-            }, '=', 0)->where('user_id', '!=', \Auth::id())->get()
+            'tasks' => $tasks,
+            'socials' => $socials,
+            'selected_social' => $social,
+            'selected_service' => $service,
+            'all' => $all
         ]);
     }
 
@@ -79,6 +115,7 @@ class TasksController extends Controller
         $user = \Auth::user();
         $task = Task::find($id);
         $check = $request->input('check');
+        $watch = $request->input('watch');
         if ($request->has('comment')) {
             $comment = TaskComments::find($request->input('comment'));
             $comment = $comment->text;
@@ -100,6 +137,9 @@ class TasksController extends Controller
                 break;
             case 'OK':
 
+                break;
+            case 'Youtube':
+                $resp = $this->youtube($task, $socialUser, $comment, $watch);
                 break;
             default:
                 break;
@@ -129,6 +169,8 @@ class TasksController extends Controller
         $done->status = TaskDone::DONE_TASK;
         $done->save();
 
+        $this->ifAllDone($id);
+
         $this->guzzle->depositClient($points);
         $this->guzzle->getUserBalance();
 
@@ -146,6 +188,147 @@ class TasksController extends Controller
         $trans->create($user->id, $id, Task::MONEY_IN, $trans_action, $points, $trans_desc);
     }
 
+    /**
+     * @param $taskId
+     */
+    public function ifAllDone($taskId)
+    {
+        $tasksDoneCounter = TaskDone::where('task_id', '=', $taskId)
+            ->where('status', '=', TaskDone::DONE_TASK)
+            ->count();
+
+        $currentTask = Task::findOrFail($taskId);
+        if ($currentTask->amount == $tasksDoneCounter) {
+            $currentTask->done = 1;
+            $currentTask->save();
+        }
+    }
+
+
+    public function youtube($task, $token, $randComment = null, $watch)
+    {
+        switch ($task->service->name) {
+            case 'Comment':
+                $path = explode('?v=', $task->link);
+                $client = new Client();
+                $url = 'https://www.googleapis.com/youtube/v3/commentThreads';
+                $channel_admin = $client->request('GET', $url,
+                    [
+                        'headers' => [
+                            'Authorization' => 'Bearer ' . $token->access_token,
+                            'Content-Type' => 'application/json'
+                        ],
+                        'query' => [
+                            'part' => 'snippet',
+                            'videoId' => $path[1],
+                            'maxResults' => '50',
+                            'moderationStatus' => 'published'
+                        ],
+                        'http_errors' => false
+                    ]);
+                $result = json_decode($channel_admin->getBody()->getContents());
+                if (isset($result->error)) {
+                    if ($result->error->code == 401) {
+                        return response()->json(['status' => 'error', 'title' => 'Cрок привязки истек.', 'message' => 'Попробуйте перепривязать ваш аккаунт в настройках.']);
+                    }
+                }
+                $true = false;
+                foreach ($result->items as $item) {
+                    $author_id = $item->snippet->topLevelComment->snippet->authorChannelId->value;
+                    if ($author_id == $token->client_id) {
+                        $comment_text = $item->snippet->topLevelComment->snippet->textOriginal;
+                        if ($randComment != null) {
+                            if ($comment_text == $randComment) {
+                                $true = true;
+                                return response()->json(['status' => 'success', 'message' => 'Задание выполнено']);
+                            }
+                        }
+                    }
+                }
+                if ($true) {
+                    return response()->json(['status' => 'success', 'message' => 'Задание выполнено']);
+                } else {
+                    return response()->json(['status' => 'error', 'title' => 'Нажмите проверить.', 'message' => 'Выполнение не подтверждено, проверьте ещё раз.']);
+                }
+                break;
+            case 'Subscribe':
+                $path = explode('/channel/', $task->link);
+                $client = new Client();
+                $url = 'https://www.googleapis.com/youtube/v3/subscriptions';
+                $channel_admin = $client->request('GET', $url,
+                    [
+                        'headers' => [
+                            'Authorization' => 'Bearer ' . $token->access_token,
+                            'Content-Type' => 'application/json'
+                        ],
+                        'query' => [
+                            'part' => 'snippet',
+                            'channelId' => $token->client_id,
+                            'forChannelId' => $path[1],
+                        ],
+                        'http_errors' => false
+                    ]);
+                $result = json_decode($channel_admin->getBody()->getContents());
+                if (isset($result->error)) {
+                    if ($result->error->code == 401) {
+                        return response()->json(['status' => 'error', 'title' => 'Cрок привязки истек.', 'message' => 'Попробуйте перепривязать ваш аккаунт в настройках.']);
+                    }
+                }
+                if (count($result->items) > 0) {
+                    if ($result->items[0]->snippet->channelId == $token->client_id) {
+                        return response()->json(['status' => 'success', 'message' => 'Задание выполнено']);
+                    } else {
+                        return response()->json(['status' => 'error', 'title' => 'Нажмите проверить.', 'message' => 'Выполнение не подтверждено, проверьте ещё раз.']);
+                    }
+                } else {
+                    return response()->json(['status' => 'error', 'title' => 'Нажмите проверить.', 'message' => 'Выполнение не подтверждено, проверьте ещё раз.']);
+                }
+                break;
+            case 'Like':
+                $path = explode('?v=', $task->link);
+                $client = new Client();
+                $url = 'https://www.googleapis.com/youtube/v3/videos';
+                $channel_admin = $client->request('GET', $url,
+                    [
+                        'headers' => [
+                            'Authorization' => 'Bearer ' . $token->access_token,
+                            'Content-Type' => 'application/json'
+                        ],
+                        'query' => [
+                            'part' => 'snippet',
+                            'myRating' => 'like',
+                            'maxResults' => '50',
+                        ],
+                        'http_errors' => false
+                    ]);
+                $result = json_decode($channel_admin->getBody()->getContents());
+                if (isset($result->error)) {
+                    if ($result->error->code == 401) {
+                        return response()->json(['status' => 'error', 'title' => 'Cрок привязки истек.', 'message' => 'Попробуйте перепривязать ваш аккаунт в настройках.']);
+                    }
+                }
+                $true = false;
+                foreach ($result->items as $item) {
+                    if ($path[1] == $item->id) {
+                        $true = true;
+                        return response()->json(['status' => 'success', 'message' => 'Задание выполнено']);
+                    }
+                }
+                if ($true) {
+                    return response()->json(['status' => 'success', 'message' => 'Задание выполнено']);
+                } else {
+                    return response()->json(['status' => 'error', 'title' => 'Нажмите проверить.', 'message' => 'Выполнение не подтверждено, проверьте ещё раз.']);
+                }
+                break;
+            case 'Watch':
+                if ($watch == 'true') {
+                    return response()->json(['status' => 'success', 'message' => 'Задание выполнено']);
+                } else {
+                    return response()->json(['status' => 'error', 'title' => 'Нажмите проверить.', 'message' => 'Выполнение не подтверждено, проверьте ещё раз.']);
+                }
+                break;
+        }
+    }
 
     public function instagram($client_name, $client_id, $post, $service, $check, $randComment = null)
     {
@@ -162,20 +345,37 @@ class TasksController extends Controller
         switch ($service) {
             case 'Like':
                 $code = str_replace('/', '', str_replace('https://www.instagram.com/p/', '', $post));
+//            try {
+                $instagram = Instagram::withCredentials('walle_017', 'akiakiaki17', __DIR__ . '/cache');
+//                $instagram = Instagram::withCredentials(Task::INSTAGRAM_USERNAME, Task::INSTAGRAM_PASSWORD,  __DIR__ . '/cache');
+                Instagram::setProxy([
+                    'address' => '128.199.168.132',
+                    'port'    => '31330',
+                    'tunnel'  => true,
+                    'timeout' => 30,
+                ]);
+                $instagram->login();
 //                $ip = "fe80::9def:4e76:6600:" . rand( 500, 9999 );
 //                Instagram::curlOpts( [ CURLOPT_INTERFACE => $ip, CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V6 ] );
-                $instagram = Instagram::withCredentials(Task::INSTAGRAM_USERNAME, Task::INSTAGRAM_PASSWORD, __DIR__ . '/cache');
-//                Instagram::setProxy([
-//                    'address' => '68.15.42.194',
-//                    'port'    => '46682',
-//                    'tunnel'  => true,
-//                    'timeout' => 30,
-//                ]);
-                $instagram->login();
+//            dd($_SERVER['HTTP_X_REAL_IP']);
+//            $instagram = new Instagram();
+//            dd(2);
+//                $ip = "xa02:c207:2x16:1262::" . rand( 500, 9999 ); // my block and random entry between 500, and 9999
+//                Instagram::curlOpts( [ CURLOPT_INTERFACE => $ip, CURLOPT_IPRESOLVE => CURL_IPRESOLVE_V6 ] );
+//                $instagram = Instagram::withCredentials('picstar.uz', 'secretsecret1234', __DIR__ . '/cache');
+//                $instagram->setProxy("5.63.**.**", 9999, "****", "****");
+//                $instagram->login();
 
-                sleep(1);
-
+                sleep(2);
                 $likes = $instagram->getMediaLikesByCode($code, $quantity);
+
+//            } catch (\Exception $e) {
+//                return response()->json([
+//                    'status' => $status,
+//                    'title' => $title,
+//                    'message' => 'Сервис временно недоступен.'
+//                ]);
+//            }
 
                 foreach ($likes as $like) {
                     if ($like->getUsername() == $client_name) {
@@ -186,36 +386,51 @@ class TasksController extends Controller
                 break;
             case 'Subscribe':
                 $code = str_replace('/', '', str_replace('https://www.instagram.com/', '', $post));
-                $instagram = Instagram::withCredentials(Task::INSTAGRAM_USERNAME, Task::INSTAGRAM_PASSWORD, __DIR__ . '/cache');
-                $instagram->login();
+                try {
+                    $instagram = Instagram::withCredentials(Task::INSTAGRAM_USERNAME, Task::INSTAGRAM_PASSWORD, __DIR__ . '/cache');
+                    $instagram->login();
 
-                sleep(1);
+                    sleep(2);
 
-                $followers = $instagram->getFollowing($client_id, $quantity, 30, true);
-
-                foreach ($followers as $follower) {
-                    if ($follower['username'] == $code) {
-                        return response()->json(['status' => 'success', 'message' => 'Задание выполнено', 'username' => $code]);
-                    }
+                    $followers = $instagram->getFollowing($client_id, $quantity, 30, true);
+                } catch (\Exception $e) {
+                    return response()->json([
+                        'status' => $status,
+                        'title' => $title,
+                        'message' => 'Сервис временно недоступен.'
+                    ]);
                 }
+                    foreach ($followers as $follower) {
+                        if ($follower['username'] == $code) {
+                            return response()->json(['status' => 'success', 'message' => 'Задание выполнено', 'username' => $code]);
+                        }
+                    }
 
                 break;
             case 'Comment':
                 $code = str_replace('/', '', str_replace('https://www.instagram.com/p/', '', $post));
-                $instagram = new Instagram();
-                $comments = $instagram->getMediaCommentsByCode($code, $quantity);
 
-                foreach ($comments as $comment) {
-                    if ($comment->getOwner()->getUsername() == $client_name) {
-                        if ($randComment != null) {
-                            if ($comment['text'] == $randComment) {
+                try {
+                    $instagram = new Instagram();
+                    $comments = $instagram->getMediaCommentsByCode($code, $quantity);
+                } catch (\Exception $e) {
+                    return response()->json([
+                        'status' => $status,
+                        'title' => $title,
+                        'message' => 'Выполнение не подтверждено, проверьте ещё раз.'
+                    ]);
+                }
+                    foreach ($comments as $comment) {
+                        if ($comment->getOwner()->getUsername() == $client_name) {
+                            if ($randComment != null) {
+                                if ($comment['text'] == $randComment) {
+                                    return response()->json(['status' => 'success', 'message' => 'Задание выполнено', 'post' => $code, 'username' => $client_name]);
+                                }
+                            } else {
                                 return response()->json(['status' => 'success', 'message' => 'Задание выполнено', 'post' => $code, 'username' => $client_name]);
                             }
-                        } else {
-                            return response()->json(['status' => 'success', 'message' => 'Задание выполнено', 'post' => $code, 'username' => $client_name]);
                         }
                     }
-                }
 
                 break;
             default:
@@ -248,8 +463,15 @@ class TasksController extends Controller
         switch ($service) {
 //        $twoMonthToken = $client->getLongLivedAccessToken($twoHourToken);
             case 'Like':
+//                if((strpos($post, 'photo') !== false) && strpos($post, 'fbid') !== false) {
+//                    $requestUrl = '/' . $client_id . '_' . $postId;
+//                } elseif (strpos($post, 'videos') !== false) {
+//                    $requestUrl = '/' . $postId;
+//                } elseif (strpos($post, 'posts') !== false) {
+//                    $requestUrl = '/' . $client_id . '_' . $postId;
+//                }
                 try {
-                    $response = $fb->get('/' . $client_id . '_' . $postId . '/likes/', $config['client_id'] . '|' . $config['client_secret']);
+                    $response = $fb->get('/' . $client_id . '_' . $postId . '/likes/', $token);
                 } catch (\Facebook\Exceptions\FacebookResponseException $e) {
                     return response()->json(['status' => 'error', 'title' => 'Что то пошло не так.', 'message' => 'Попробуйте ещё раз.', 'error' => $e->getMessage()]);
                 } catch (\Facebook\Exceptions\FacebookSDKException $e) {
@@ -264,7 +486,7 @@ class TasksController extends Controller
                 break;
             case 'Subscribe':
                 try {
-                    $response = $fb->get('/' . $client_id . '/likes/', $config['client_id'] . '|' . $config['client_secret']);
+                    $response = $fb->get('/' . $client_id . '/likes/', $token);
                 } catch (\Facebook\Exceptions\FacebookResponseException $e) {
                     return response()->json(['status' => 'error', 'title' => 'Что то пошло не так.', 'message' => 'Попробуйте ещё раз.', 'error' => $e->getMessage()]);
                 } catch (\Facebook\Exceptions\FacebookSDKException $e) {
@@ -280,7 +502,7 @@ class TasksController extends Controller
                 break;
             case 'Comment':
                 try {
-                    $response = $fb->get('/' . $client_id . '_' . $postId . '/comments/', $config['client_id'] . '|' . $config['client_secret']);
+                    $response = $fb->get('/' . $client_id . '_' . $postId . '/comments/', $token);
                 } catch (\Facebook\Exceptions\FacebookResponseException $e) {
                     return response()->json(['status' => 'error', 'title' => 'Что то пошло не так.', 'message' => 'Попробуйте ещё раз.', 'error' => $e->getMessage()]);
                 } catch (\Facebook\Exceptions\FacebookSDKException $e) {
@@ -301,7 +523,7 @@ class TasksController extends Controller
                 break;
             case 'Share':
                 try {
-                    $response = $fb->get('/' . $client_id . '/posts/', $config['client_id'] . '|' . $config['client_secret']);
+                    $response = $fb->get('/' . $client_id . '/posts/', $token);
                 } catch (\Facebook\Exceptions\FacebookResponseException $e) {
                     return response()->json(['status' => 'error', 'title' => 'Что то пошло не так.', 'message' => 'Попробуйте ещё раз.', 'error' => $e->getMessage()]);
                 } catch (\Facebook\Exceptions\FacebookSDKException $e) {

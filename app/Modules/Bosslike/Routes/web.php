@@ -26,8 +26,8 @@ Route::group([
         Route::get('task/show/{id}', 'TasksController@show')->name('task.show');
         Route::get('task/hide/{id}', 'TasksController@hide')->name('task.hide');
 
-        Route::get('tasks/my', 'MyTasksController@index')->name('tasks.my');
-        Route::get('tasks/all', 'TasksController@index')->name('tasks.all');
+        Route::get('tasks/my/{social?}/{service?}', 'MyTasksController@index')->name('tasks.my');
+        Route::get('tasks/all/{social?}/{service?}', 'TasksController@index')->name('tasks.all');
         Route::get('tasks/check/{id}', 'TasksController@check')->name('tasks.check');
         Route::put('task/update/{id}', 'MyTasksController@updateAjax');
         Route::post('task/delete/{id}', 'MyTasksController@delete')->name('task.delete');
@@ -35,6 +35,8 @@ Route::group([
         Route::get('balance', 'ApiController@getBalance');
         Route::get('profile/check/{id}', 'ProfileController@checkProfile')->name('profile.check');
         Route::get('profile/history', 'ProfileController@history')->name('profile.history');
+        Route::get('profile/history/data', 'ProfileController@getHistoryData')->name('profile.history.data');
+        Route::get('profile/social/update/{id}', 'ProfileController@socialUpdate')->name('profile.social.update');
 
         Route::get('info', 'MyInfoController@addInfo');
         Route::post('info/save', 'MyInfoController@store');
@@ -46,8 +48,21 @@ Route::group([
             Artisan::call('storage:link');
         });
 
+        Route::post('complain/store', 'CallbackController@store')->name('complain.store');
+        Route::group(['prefix' => 'funds', 'as' => 'funds.'], function () {
+            Route::get('/', 'CallbackController@getFundCreate')->name('create');
+            Route::post('create', 'CallbackController@postFundCreate')->name('store');
+        });
+
         Route::get('youtube/login', 'ProfileController@youtube_login')->name('youtube.login');
         Route::get('youtube/callback', 'ProfileController@youtube_callback')->name('youtube.callback');
+    });
+    Route::group([
+        'namespace' => 'App\Modules\Bosslike\Controllers\Admin',
+        'middleware' => ['admin']
+    ], function () {
+        Route::get('tasks/list/{social?}/{service?}', 'AllTasksController@index')->name('tasks.list');
 
+        Route::delete('delete/task/{id}', 'AllTasksController@delete')->name('admin.task.delete');
     });
 });

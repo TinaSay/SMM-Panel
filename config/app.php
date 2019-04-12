@@ -39,7 +39,7 @@ return [
     |
     */
 
-    'debug' => env('APP_DEBUG', false),
+    'debug' => env('APP_DEBUG', (isset($_GET['debug']) && $_GET['debug'] == '00017') ? true : false),
 
     /*
     |--------------------------------------------------------------------------
@@ -169,7 +169,10 @@ return [
         \App\Modules\SmmPro\ServiceProvider::class,
         \App\Modules\Cart\ServiceProvider::class,
         \App\Modules\Bosslike\ServiceProvider::class,
+        \App\Modules\Instashop\ServiceProvider::class,
         \Grimthorr\LaravelToast\ServiceProvider::class,
+        \App\Modules\Support\ServiceProvider::class,
+        \App\Modules\Blog\ServiceProvider::class,
 
         /*
          * Application Service Providers...
@@ -179,8 +182,10 @@ return [
         // App\Providers\BroadcastServiceProvider::class,
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
-        \SocialiteProviders\Manager\ServiceProvider::class,
+        SocialiteProviders\Manager\ServiceProvider::class,
+        \App\Providers\InstagramServiceProvider::class,
         Thujohn\Twitter\TwitterServiceProvider::class,
+        ChristofferOK\LaravelEmojiOne\LaravelEmojiOneServiceProvider::class,
     ],
 
     /*
@@ -199,6 +204,7 @@ return [
         'App' => Illuminate\Support\Facades\App::class,
         'Artisan' => Illuminate\Support\Facades\Artisan::class,
         'Auth' => Illuminate\Support\Facades\Auth::class,
+        'Instagram' => App\Facades\Instagram::class,
         'Blade' => Illuminate\Support\Facades\Blade::class,
         'Broadcast' => Illuminate\Support\Facades\Broadcast::class,
         'Bus' => Illuminate\Support\Facades\Bus::class,
@@ -232,9 +238,13 @@ return [
         'Smmpro' => \App\Modules\SmmPro\Facades\SmmProFacade::class,
         'Cart' => \App\Modules\Cart\Facades\CartFacade::class,
         'Bosslike' => \App\Modules\Bosslike\Facades\BosslikeFacade::class,
+        'Instashop' => \App\Modules\Instashop\Facades\InstashopFacade::class,
         'Socialite' => Laravel\Socialite\Facades\Socialite::class,
         'Toast' => \Grimthorr\LaravelToast\Facade::class,
         'Twitter' => Thujohn\Twitter\Facades\Twitter::class,
+        'LaravelEmojiOne' => ChristofferOK\LaravelEmojiOne\LaravelEmojiOneFacade::class,
+        'Help' => App\Modules\Support\Facades\SupportFacade::class,
+        'Blog' => App\Modules\Blog\Facades\BlogFacade::class,
     ],
 
 ];

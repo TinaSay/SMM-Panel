@@ -5,6 +5,7 @@ namespace App;
 use App\Modules\Bosslike\Models\SocialUser;
 use App\Modules\Bosslike\Models\Task;
 use App\Modules\SmmPro\Models\Order;
+use App\Modules\Support\Models\Feedback;
 use Http\Client\Exception;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -59,7 +60,7 @@ class User extends Authenticatable
      */
     const ROLE_ADMIN = 1;
 
-    const RETURN_URL = 'https://smm-pro.uz';
+    const RETURN_URL = 'https://picstar.uz';
     /**
      * The attributes that are mass assignable.
      *
@@ -102,5 +103,12 @@ class User extends Authenticatable
         return $this->hasMany(Task::class);
     }
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function feedbacks()
+    {
+        return $this->hasMany(Feedback::class);
+    }
 
 }

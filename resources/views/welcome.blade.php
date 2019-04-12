@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-    <title>Picstar.uz</title>
+    <title>Picstar.uz | Стань звездой сети!</title>
 
     <link href="{{ asset('css/app.css') }}" rel="stylesheet">
+    <link href="{{ asset('css/additional.css?ver=') . time() }}" rel="stylesheet">
     {{--favicon--}}
     <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('favicon/apple-touch-icon.png') }}">
     <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('favicon//favicon-32x32.png') }}">
@@ -16,18 +18,22 @@
     <meta name="theme-color" content="#ffffff">
     {{--favicon end--}}
 </head>
+
 <body id="landing">
-<main class="landing">
-    <aside class="landing-sidebar">
-        <img src="{{asset('images/landing/logo.png')}}" class="landing-logo" alt="">
-        <p>На нашем сервисе можно накрутить лайки, подписчиков, раскрутить группу
-        </p>
-        <a href="{{ route('oauth.login') }}" class="cta-button">Вход</a>
-        <a href="{{ route('oauth.login') }}" class="cta-button">Регистрация</a>
-        <img src="{{asset('images/landing/plane.png')}}" alt="" class="plane">
-    </aside>
-    <section class="landing-side-right" style="background-image: url({{asset('images/landing/phone.png')}})">
-    </section>
-</main>
+    <main class="landing">
+        <aside class="landing-sidebar">
+            <img src="{{asset('images/landing/logo.png')}}" class="landing-logo" alt="">
+            <p>
+                На нашем сервисе можно зарабатывать реальные деньги за выполнение заданий в бирже,
+                а также раскрутить свой Instagram профиль, Telegram и YouTube каналы и многие другие.
+            </p>
+            <a href="{{ route('oauth.login') }}" class="cta-button">Вход</a>
+            <a href="{{ route('oauth.login') }}" class="cta-button">Регистрация</a>
+            <img src="{{asset('images/landing/plane.png')}}" alt="" class="plane">
+        </aside>
+        <section class="landing-side-right" style="background-image: url({{asset('images/landing/phone.png')}})">
+        </section>
+    </main>
 </body>
+
 </html>

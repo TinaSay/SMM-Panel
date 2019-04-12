@@ -22,6 +22,11 @@ class BillingOauthProvider extends OAuth2
 
     protected $supportRequestState = false;
 
+    protected function initialize()
+    {
+        parent::initialize();
+    }
+
     public function authenticate($get = [])
     {
         $this->logger->info(sprintf('%s::authenticate()', get_class($this)));
@@ -65,46 +70,6 @@ class BillingOauthProvider extends OAuth2
     }
 
     /**
-     * Build Authorization URL for Authorization Request
-     *
-     * RFC6749: The client constructs the request URI by adding the following
-     * $parameters to the query component of the authorization endpoint URI:
-     *
-     *    - response_type  REQUIRED. Value MUST be set to "code".
-     *    - client_id      REQUIRED.
-     *    - redirect_uri   OPTIONAL.
-     *    - scope          OPTIONAL.
-     *    - state          RECOMMENDED.
-     *
-     * http://tools.ietf.org/html/rfc6749#section-4.1.1
-     *
-     * Sub classes may redefine this method when necessary.
-     *
-     * @param array $parameters
-     *
-     * @return string Authorization URL
-     */
-    protected function getAuthorizeUrl($parameters = [])
-    {
-        $this->AuthorizeUrlParameters = !empty($parameters)
-            ? $parameters
-            : array_replace(
-                (array)$this->AuthorizeUrlParameters,
-                (array)$this->config->get('authorize_url_parameters')
-            );
-
-        if ($this->supportRequestState) {
-            if (!isset($this->AuthorizeUrlParameters['state'])) {
-                $this->AuthorizeUrlParameters['state'] = 'HA-' . str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890');
-            }
-
-            $this->storeData('authorization_state', $this->AuthorizeUrlParameters['state']);
-        }
-
-        return $this->authorizeUrl . '?' . http_build_query($this->AuthorizeUrlParameters, '', '&');
-    }
-
-    /**
      * Finalize the authorization process
      *
      * @throws \Hybridauth\Exception\HttpClientFailureException
@@ -131,10 +96,10 @@ class BillingOauthProvider extends OAuth2
          * http://tools.ietf.org/html/rfc6749#section-4.1.1
          */
         if ($this->supportRequestState
-            && $this->getStoredData('authorization_state') != $state
+            &&  $this->getStoredData('authorization_state') != $state
         ) {
             throw new InvalidAuthorizationStateException(
-                'The authorization state [state=' . substr(htmlentities($state), 0, 100) . '] '
+                'The authorization state [state=' . substr(htmlentities($state), 0, 100). '] '
                 . 'of this page is either invalid or has already been consumed.'
             );
         }
@@ -154,21 +119,57 @@ class BillingOauthProvider extends OAuth2
         $this->initialize();
     }
 
-    protected function initialize()
+    /**
+     * Build Authorization URL for Authorization Request
+     *
+     * RFC6749: The client constructs the request URI by adding the following
+     * $parameters to the query component of the authorization endpoint URI:
+     *
+     *    - response_type  REQUIRED. Value MUST be set to "code".
+     *    - client_id      REQUIRED.
+     *    - redirect_uri   OPTIONAL.
+     *    - scope          OPTIONAL.
+     *    - state          RECOMMENDED.
+     *
+     * http://tools.ietf.org/html/rfc6749#section-4.1.1
+     *
+     * Sub classes may redefine this method when necessary.
+     *
+     * @param array $parameters
+     *
+     * @return string Authorization URL
+     */
+    protected function getAuthorizeUrl($parameters = [])
     {
-        parent::initialize();
+        $this->AuthorizeUrlParameters = !empty($parameters)
+            ? $parameters
+            : array_replace(
+                (array) $this->AuthorizeUrlParameters,
+                (array) $this->config->get('authorize_url_parameters')
+            );
+
+        if ($this->supportRequestState) {
+            if (!isset($this->AuthorizeUrlParameters['state'])) {
+                $this->AuthorizeUrlParameters['state'] = 'HA-' . str_shuffle('ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890');
+            }
+
+            $this->storeData('authorization_state', $this->AuthorizeUrlParameters['state']);
+        }
+
+        return $this->authorizeUrl . '?' . http_build_query($this->AuthorizeUrlParameters, '', '&');
     }
 
     public function getUserProfile()
     {
-        $response = $this->apiRequest('user');
+        $response = $this->apiRequest( 'user' );
 
-        $data = new Data\Collection($response);
+        $data = new Data\Collection( $response );
 
         $userProfile = new \stdClass;
 
-        if (!$data->exists('id')) {
-            throw new UnexpectedValueException('Provider API returned an unexpected response.');
+        if( ! $data->exists( 'id' ) )
+        {
+            throw new UnexpectedValueException( 'Provider API returned an unexpected response.' );
         }
 
         $userProfile->identifier = $data->get( 'id' );

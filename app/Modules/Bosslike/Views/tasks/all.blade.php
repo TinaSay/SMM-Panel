@@ -1,11 +1,62 @@
 @extends('layouts.app')
 @section('title','Все задания')
 @section('content')
-    @if($tasks->isEmpty())
-        <h3>Нет заданий</h3>
-    @else
-        <div class="row justify-content-center">
 
+    <div class="additional-sidebar"><span class="additional-sidebar-title">Выберите социальную сеть</span>
+        <ul class="additional-sidebar-select">
+            @foreach($socials as $social)
+                <li>
+                    <a class="additional-sidebar-select-button {{ ($social->id == $selected_social) ? 'selected' : '' }}">
+                        <img src="{{ asset('images/' . $social->icon) }}" alt="{{ $social->name }}">
+                        {{ $social->name }}
+                    </a>
+                    <ul class="additional-sidebar-submenu {{ ($social->id == $selected_social) ? 'active-cat-cover' : '' }}">
+                        <li>
+                            <a class="{{ ($social->id == $selected_social && $all) ? 'active-cat' : '' }}"
+                               href="{{ route('tasks.all', ['social' => $social->id]) }}">
+                                <img src="{{ asset('images/' . $social->icon) }}">
+                                Все задания
+                            </a>
+                        </li>
+                        @foreach($social->services as $service)
+                            <li>
+                                <a class="{{ ($service->id == $selected_service) ? 'active-cat' : '' }}"
+                                   href="{{ route('tasks.all', ['social' => $social->id, 'service' => $service->id]) }}">
+                                    <img src="{{ asset('images/' . $service->icon) }}">
+                                    {{ Bosslike::setServiceName($service->name, 'category') }}
+                                </a>
+                            </li>
+                        @endforeach
+                        <button class="hide">Скрыть</button>
+                    </ul>
+                </li>
+            @endforeach
+        </ul>
+    </div>
+
+    @if($tasks->isEmpty())
+        <div class="no-orders-container">
+            <h3 class="no-orders-heading">На данный момент нет подходящих заданий.</h3>
+            <div class="ghost-icon"></div>
+        </div>
+    @else
+
+        <div class="row justify-content-center task-list">
+            <div class="alert-wrapper">
+                <div class="alert alert-info alert-dismissable text-center">
+                    <ul>
+                        <li>
+                            Аккаунты должны быть открытыми и иметь аватарку, если вы заметили закрытый профиль, пожалуйста обратитесь к нам.
+                        </li>
+                        <li>
+                            После подписки на профиль, исполнитель не должен отписываться от него в течении 30 дней.
+                        </li>
+                        <li>
+                            Если вы производили какие-то действия вне сервиса Picstar, то советуем вам перевыполнить их для подтверждения выполнения.
+                        </li>
+                    </ul>
+                </div>
+            </div>
             @foreach($tasks as $task)
                 <div class="col-md-12 card mb-4" data-id="{{$task->id}}">
                     <div class="card-body" data-social="{{ $task->service->social->name }}">
@@ -23,6 +74,8 @@
                                             <i class="fab fa-facebook"></i>
                                         @elseif($task->service->social->name =='Instagram')
                                             <i class="fab fa-instagram"></i>
+                                        @elseif($task->service->social->name =='Youtube')
+                                            <i class="fab fa-youtube"></i>
                                         @else
                                             <i class="fas fa-info-circle"></i>
                                         @endif
@@ -32,7 +85,11 @@
                                             <a data-toggle="collapse" href="#oneTask_{{ $task->id }}" role="button"
                                                aria-expanded="false"
                                                aria-controls="oneTask_{{ $task->id }}" class="withComments">
-                                                {{ Bosslike::setTypeName($task->type) }}
+                                                @if($task->service->social->name =='Instagram')
+                                                    <span> пост </span>
+                                                @else
+                                                    {{ Bosslike::setTypeName($task->type) }}
+                                                @endif
                                             </a></p>
                                     </div>
 
@@ -42,7 +99,8 @@
                                                 data-target="#oneTask_{{ $task->id }}"
                                                 aria-expanded="true"
                                                 aria-controls="oneTask_{{ $task->id }}"
-                                                class="btn btn-lilac btn-lilac-sm make_action_but withComments link_but"><i
+                                                class="btn btn-lilac btn-lilac-sm make_action_but withComments link_but">
+                                            <i
                                                 class="far fa-star" aria-hidden="true"></i>
                                             {{ $task->points }} сум
                                         </button>
@@ -56,8 +114,17 @@
                                         <span class="is_initial" style="display: none"><i class="fa fa-star"
                                                                                           aria-hidden="true"></i> {{ $task->points }} сум</span>
                                     </div>
-                                    <a href="" data-toggle="tooltip" title="Скрыть" onclick="hide({{ $task->id }})"><i
-                                            class="far fa-times-circle close-icon"></i></a>
+
+                                    <div class="dropleft">
+                                        <button class="btn btn-secondary" type="button" id="dropdownMenuButton_{{ $task->id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            <i class="fas fa-ellipsis-h"></i>
+                                        </button>
+                                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton_{{ $task->id }}">
+                                            <a href="" class="dropdown-item" data-toggle="tooltip" title="Скрыть" onclick="hide({{ $task->id }})"><i
+                                                        class="fas fa-times close-icon"></i> Скрыть</a>
+                                            <a class="dropdown-item task-callback-but" data-id="{{ $task->id }}" data-toggle="modal" data-target="#complainModal" href="#"><i class="fas fa-exclamation"></i> Пожаловаться</a>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
 
@@ -71,11 +138,11 @@
                                                 <div class="form-group comment-place">
                                                     <label class="control-label" for="taskComment_{{ $randTask->id }}">Текст
                                                         комментария <span class="help-block">(скопируйте и вставьте на странице задания)</span></label>
-                                                    <input readonly="readonly" type="text"
-                                                           name="taskComment_{{ $randTask->id }}"
-                                                           class="form-control randComment"
-                                                           data-id="{{ $randTask->id }}" value="{{ $randTask->text }}"/>
-                                                    <button class="copy_to_clipboard"><i class="fa fa-copy"></i>
+                                                    <div readonly="readonly"
+                                                         id="taskComment_{{ $randTask->id }}"
+                                                         class="form-control randComment"
+                                                         data-id="{{ $randTask->id }}">{!! $randTask->text !!}</div>
+                                                    <button class="copy_to_clipboard">Скопировать
                                                     </button>
                                                 </div>
                                             @else
@@ -124,6 +191,8 @@
                                             <i class="fab fa-facebook"></i>
                                         @elseif($task->service->social->name =='Instagram')
                                             <i class="fab fa-instagram"></i>
+                                        @elseif($task->service->social->name =='Youtube')
+                                            <i class="fab fa-youtube"></i>
                                         @else
                                             <i class="fas fa-info-circle"></i>
                                         @endif
@@ -131,166 +200,134 @@
                                     <div class="col-sm-5 col-md-4 col-lg-6">
                                         <p>{{ Bosslike::setServiceName($task->service->name) }}
                                             <a data-id="{{ $task->id }}"
-                                               target="_blank" class="do-action link_but" data-check="false">
+                                               href="#oneTask_{{ $task->id }}"
+                                               aria-controls="oneTask_{{ $task->id }}"
+                                               class="do-action link_but"
+                                               data-check="false">
 
                                                 @if($task->service->name=='Subscribe')
-                                                    <span> на </span>  {{Bosslike::setTypeName($task->type) }}
+                                                    @if($task->service->social->name =='Youtube')
+                                                        <span> канал </span>
+                                                    @elseif($task->service->social->name =='Telegram')
+                                                        <span> канал </span>
+                                                    @elseif($task->service->social->name =='Instagram')
+                                                        <span> пользователя</span>
+                                                    @else
+                                                        {{Bosslike::setTypeName($task->type) }}
+                                                    @endif
+
+                                                @elseif($task->service->name=='Like')
+                                                    @if($task->service->social->name =='Instagram')
+                                                        <span> пост </span>
+                                                    @else
+                                                        {{Bosslike::setTypeName($task->type) }}
+                                                    @endif
+
                                                 @else
                                                     {{Bosslike::setTypeName($task->type) }}
                                                 @endif
                                                 {{$task->post_name}}
-                                                {{--{{ $task->type=='page' ? $task->post_name :'' }}--}}
                                             </a></p>
                                     </div>
                                     <div class="col-sm-3 col-md-4 col-lg-3">
-                                        <button data-id="{{ $task->id }}"
-                                                data-check="false"
-                                                class="do-action btn btn-lilac btn-lilac-sm make_action_but link_but"><i
-                                                class="far fa-star" aria-hidden="true"></i> {{ $task->points }} сум
-                                        </button>
+                                        @if($task->service->name == 'Watch')
+                                            <button data-id="{{ $task->id }}"
+                                                    data-check="false"
+                                                    data-method="watch"
+                                                    class="do-action btn btn-lilac btn-lilac-sm make_action_but link_but">
+                                                <i
+                                                    class="far fa-star" aria-hidden="true"></i> {{ $task->points }} сум
+                                            </button>
+                                        @else
+                                            <button data-id="{{ $task->id }}"
+                                                    data-check="false"
+                                                    class="do-action btn btn-lilac btn-lilac-sm make_action_but link_but">
+                                                <i
+                                                    class="far fa-star" aria-hidden="true"></i> {{ $task->points }} сум
+                                            </button>
+                                        @endif
                                         <span class="while_checking" style="display: none"><i
                                                 class="fa fa-spinner fa-spin"
                                                 aria-hidden="true"></i> Проверка</span>
                                         <span class="needs_checking" style="display: none"><i class="fa fa-eye"
                                                                                               aria-hidden="true"></i> Проверить</span>
                                         <span class="is_ready" style="display: none"><i class="fa fa-check-circle"
-                                                                                        aria-hidden="true"></i> Выполнено</span>
+                                                                                        aria-hidden="true"
+                                                                                        onload="getBalance()"></i> Выполнено</span>
                                         <span class="is_initial" style="display: none"><i class="far fa-star"
                                                                                           aria-hidden="true"></i> {{ $task->points }} сум</span>
                                     </div>
-                                    <a href="#" data-toggle="tooltip" title="Скрыть" onclick="hide({{ $task->id }})"><i
-                                            class="far fa-times-circle close-icon"></i></a>
 
+                                    <div class="dropleft">
+                                        <button class="btn btn-secondary" type="button" id="dropdownMenuButton_{{ $task->id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                            <i class="fas fa-ellipsis-h"></i>
+                                        </button>
+                                        <div class="dropdown-menu" aria-labelledby="dropdownMenuButton_{{ $task->id }}">
+                                            <a href="" class="dropdown-item" data-toggle="tooltip" title="Скрыть" onclick="hide({{ $task->id }})"><i
+                                                        class="fas fa-times close-icon"></i> Скрыть</a>
+                                            <a class="dropdown-item task-callback-but" data-id="{{ $task->id }}" data-toggle="modal" data-target="#complainModal" href="#"><i class="fas fa-exclamation"></i> Пожаловаться</a>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         @endif
                     </div>
                 </div>
             @endforeach
+            <button class="refresh-task-list"><i class="fas fa-sync-alt"></i>Ещё задания</button>
+        </div>
+
+        <!-- Modal -->
+        <div class="modal fade" id="complainModal" tabindex="-1" role="dialog" aria-labelledby="complainModal" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="complainModalTitle">Пожаловаться на задание</h5>
+                        <p>Пожалуйста, сообщите причину, по которой задание должно быть заблокировано</p>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        {{--{{ route('complain.store') }}--}}
+                        <form id="complainForm" action="/complain/store?debug=00017" method="POST">
+                            <div class="complain-reason-radios">
+                                <div class="form-group custom-radio">
+                                    <label>
+                                        <input type="radio" name="type" value="Задание недоступно" />
+                                        <span>Задание недоступно</span></label>
+                                </div>
+                                <div class="form-group custom-radio">
+                                    <label>
+                                        <input type="radio" name="type" value="Мошенничество" />
+                                        <span>Мошенничество</span></label>
+                                </div>
+                                <div class="form-group custom-radio">
+                                    <label>
+                                        <input type="radio" name="type" value="Рассылка спама" />
+                                        <span>Рассылка спама</span></label>
+                                </div>
+                                <div class="form-group custom-radio">
+                                    <label>
+                                        <input type="radio" name="type" value="Оскорбительное поведение" />
+                                        <span>Оскорбительное поведение</span></label>
+                                </div>
+                                <div class="form-group form-text">
+                                    <label>Комментарий
+                                    <textarea placeholder="Введите комментарий..." name="comment"></textarea>
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Отмена</button>
+                                <button type="submit" class="btn btn-primary">Отправить</button>
+                            </div>
+                            <input type="hidden" name="task_id" value="" id="complainTaskId" />
+                            <input type="hidden" name="_token" value="{{ csrf_token() }}">
+                        </form>
+                    </div>
+                </div>
+            </div>
         </div>
     @endif
 @endsection
-@push('functions')
-    <script>
-        function hide(task) {
-            var $csrf = $('meta[name="csrf-token"]').attr('content');
-            $.ajax({
-                url: '/task/hide/' + task,
-                type: 'GET',
-                data: {_token: $csrf},
-                success: function (resp) {
-                    $(".card[data-id=" + task + "]").addClass("d-none");
-                    toastr.success('Задание скрыто из вашей ленты');
-                }
-            });
-        }
-
-        function checkConnectedProfile(id) {
-            var $csrf = $('meta[name="csrf-token"]').attr('content');
-            return $.ajax({
-                url: '/profile/check/' + id,
-                type: 'GET',
-                data: {_token: $csrf}
-                // success: function (resp) {
-                //     return resp;
-                // }
-            });
-        }
-    </script>
-@endpush
-@push('scripts')
-    <script>
-        $(document).ready(function () {
-            $(document).on('click', '.do-action', function (event) {
-
-                var $this = $(this),
-                    $id = $this.attr('data-id'),
-                    $url = '/task/show/' + $id,
-                    $commentId = $this.parents('.card-body').find('.randComment').data('id'),
-                    $check = $this.attr('data-check'),
-                    windowParams = 1000;
-
-                var profileCheck = checkConnectedProfile($id);
-                profileCheck.then(function (profData) {
-                    if(profData.status) {
-                        if ($check === "true") {
-                            event.preventDefault();
-                            event.stopImmediatePropagation();
-                            checkTask($id, $commentId, $this, $check);
-                        } else {
-                            popUp = window.open($url, "thePopUp", "width=" + windowParams + ",height=" + windowParams);
-                        }
-                        $this.parents('.card-body').find('.do-action').removeClass('do-action');
-
-                        function someFunctionToCallWhenPopUpCloses() {
-                            window.setTimeout(function () {
-                                if (popUp.closed) {
-                                    checkTask($id, $commentId, $this, $check);
-                                }
-                            }, 1);
-                        }
-
-                        if ($check !== "true") {
-                            var win = window.open($url, "thePopUp", "width=" + windowParams + ",height=" + windowParams);
-                            var pollTimer = window.setInterval(function () {
-                                if (win.closed !== false) {
-                                    window.clearInterval(pollTimer);
-                                    someFunctionToCallWhenPopUpCloses();
-                                }
-                            }, 200);
-                        }
-                    } else {
-{{--                        {{ Session::put('success', 'Подключите аккаунт ' + profData.social + ') }};--}}
-//                         toastr.warning('Подключите аккаунт ' + profData.social + ', чтобы продолжить', 'Нет аккаунта ' + profData.social);
-                        window.location.href = '/profile';
-                    }
-                });
-            });
-
-            $(document).on('click', '.copy_to_clipboard', function (e) {
-                var element = $(this).prev('.randComment').val();
-                copyToClipboard(element);
-            });
-
-            $('.close-icon').on('click', function (e) {
-                e.preventDefault();
-            })
-        });
-
-        function copyToClipboard(element) {
-            var $temp = $("<input>");
-            $("body").append($temp);
-            $temp.val(element).select();
-            document.execCommand("copy");
-            $temp.remove();
-        }
-
-        function checkTask($id, $commentId, $this, $check) {
-            var $csrf = $('meta[name="csrf-token"]').attr('content');
-            $this.parents('.card-body').find('.make_action_but').html($this.parents('.card-body').find('.make_action_but').nextAll('.while_checking').html());
-            $.ajax({
-                url: '/tasks/check/' + $id,
-                type: 'GET',
-                data: {_token: $csrf, comment: $commentId, check: $check},
-                success: function (resp) {
-                    if (resp.original.status !== 'success') {
-                        if ($this.parents('.card-body').find('.make_action_but').attr('data-check') === "false") {
-                            $this.parents('.card-body').find('.make_action_but').html($this.parents('.card-body').find('.make_action_but').nextAll('.needs_checking').html());
-                            $this.parents('.card-body').find('.make_action_but.withComments').addClass('do-action');
-                            $this.parents('.card-body').find('.make_action_but').attr('data-check', "true");
-                        } else {
-                            $this.parents('.card-body').find('.make_action_but').html($this.parents('.card-body').find('.make_action_but').nextAll('.is_initial').html());
-                            $this.parents('.card-body').find('.make_action_but.withComments').removeClass('do-action');
-                            $this.parents('.card-body').find('.make_action_but').attr('data-check', "false");
-                        }
-                        $this.parents('.card-body').find('.link_but').not('.withComments').addClass('do-action');
-                    } else {
-                        $this.parents('.card-body').find('.make_action_but').html($this.parents('.card-body').find('.make_action_but').nextAll('.is_ready').html());
-                        // $this.parents('.card-body').parent().slideUp(700);
-                    }
-                    toastr[resp.original.status](resp.original.title, resp.original.message);
-                }
-            });
-        }
-    </script>
-@endpush

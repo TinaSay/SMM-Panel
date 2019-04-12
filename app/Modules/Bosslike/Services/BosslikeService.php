@@ -13,14 +13,19 @@ class BosslikeService
      * @param $serviceName
      * @return string
      */
-    public static function setServiceName($serviceName)
+    public static function setServiceName($serviceName, $category = null)
     {
         if ($serviceName == 'Subscribe') {
-            return 'Подписаться';
+            if($category != null) {
+                return 'Подписаться';
+            }
+            return 'Подписаться на ';
         } elseif ($serviceName == 'Like') {
             return 'Лайкнуть';
         } elseif ($serviceName == 'Comment') {
             return 'Комментировать';
+        } elseif ($serviceName == 'Watch') {
+            return 'Просмотреть';
         }
         return $serviceName;
     }
@@ -39,6 +44,8 @@ class BosslikeService
             return ' видео';
         } elseif ($type == 'page') {
             return ' страницу';
+        } elseif ($type == 'channel') {
+            return ' канал';
         }
         return $type;
 

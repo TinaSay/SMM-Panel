@@ -29,6 +29,9 @@ window.mCustomScrollbar = require('malihu-custom-scrollbar-plugin');
 require('jquery-mousewheel');
 require('summernote');
 
+import VueCookies from 'vue-cookies';
+Vue.use(VueCookies);
+
 /**
  * The following block of code may be used to automatically register your
  * Vue components. It will recursively scan this directory for the Vue
@@ -43,6 +46,7 @@ var Paginate = require('vuejs-paginate');
 Vue.component('paginate', Paginate);
 Vue.component('moon-loader', require('vue-spinner/src/MoonLoader.vue').default);
 Vue.component('table-vue', require('./components/TableVue/TableVue.vue').default);
+Vue.component('vue-table-extended', require('./components/VueTable/vue-table-extended.vue').default);
 Vue.component('catalog', require('./components/Catalog.vue').default);
 Vue.component('example-component', require('./components/ExampleComponent.vue').default);
 Vue.component('cart-dropdown', require('./components/Cart/cart-dropdown.vue').default);

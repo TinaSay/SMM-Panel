@@ -440,7 +440,8 @@
                             window.toastr.error(response.message);
                         }
                     },
-                    error: function () {
+                    error: function (error) {
+                        console.log(error);
                         window.toastr.error('Категория уже удалена. Нажмите F5');
                     }
                 });

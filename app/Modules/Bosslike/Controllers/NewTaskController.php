@@ -3,6 +3,7 @@
 namespace App\Modules\Bosslike\Controllers;
 
 use App\Helpers\GuzzleClient;
+use GuzzleHttp\Client;
 use App\Modules\Bosslike\Models\Service;
 use App\Modules\Bosslike\Models\Social;
 use App\Modules\Bosslike\Models\SocialUser;
@@ -13,7 +14,6 @@ use App\Modules\Bosslike\Requests\TaskSaveRequest;
 use App\Modules\Bosslike\Services\BosslikeService;
 Use Exception;
 use Illuminate\Support\Facades\Input;
-use GuzzleHttp\Client;
 use App\Modules\Bosslike\Models\Transactions;
 use Bosslike;
 
@@ -43,7 +43,9 @@ class NewTaskController extends Controller
     public function create()
     {
         return view('bosslike::tasks.create', [
-            'socials' => Social::all()->sortBy('name')
+            'socials' => Social::where('name', '!=', 'Facebook')
+                ->where('name', '!=', 'Twitter')->get()->sortBy('name'),
+            'intro' => $intro = \DB::table('intros')->where('id', 2)->first()
         ]);
     }
 
@@ -84,6 +86,7 @@ class NewTaskController extends Controller
 
         $validator = $this->validatePost($data);
         if ($validator['status']) {
+//            dd($validator);
             $task = new Task();
             $task->user_id = \Auth::id();
             $task->service_id = $request->input('service_id');
@@ -91,15 +94,14 @@ class NewTaskController extends Controller
             $task->picture = $validator['picture'];
             $task->type = $validator['type'];
             $task->post_id = $validator['postId'];
+            $task->post_name = (!empty($validator['postName'])) ? $validator['postName'] : '';
 
             $task->points = $request->input('points');
             $task->amount = $request->input('amount');
 
-            $cost = $task->points * $task->amount;
+            $cost = ($task->points * 2) * $task->amount;
 
-            //TODO: change back on live
             $affordable = $this->guzzle->getUserBalance() / 100 - $cost;
-            /*$affordable = 1000;*/
             if ($affordable < 0) {
                 toast()->error('У вас не хватает средств!');
                 return back()->with(['socials' => Social::all()])->withInput(Input::all());
@@ -109,14 +111,14 @@ class NewTaskController extends Controller
                 $this->guzzle->chargeClient($cost);
 
                 $trans_action = 'Создание задания';
-                $trans_desc = BosslikeService::setServiceName($task->service->name);
+                $trans_desc = 'Создание задания "' . BosslikeService::setServiceName($task->service->name);
                 if ($task->service->name == 'Subscribe') {
                     $trans_desc .= BosslikeService::setTypeName($task->type);
                 } else {
                     $trans_desc .= BosslikeService::setTypeName($task->type);
                 }
 
-                $trans_desc .= $task->post_name;
+                $trans_desc .= $task->post_name . '"';
 
                 $trans = new Transactions;
                 $trans->create(\Auth::id(), $task->id, Task::MONEY_OUT, $trans_action, $task->points, $trans_desc);
@@ -125,6 +127,7 @@ class NewTaskController extends Controller
                     $commentsArray = $request->input('comment_text');
 
                     foreach ($commentsArray as $comment) {
+
                         $taskComment = new TaskComments();
                         $taskComment->task_id = $task->id;
                         $taskComment->text = $comment;
@@ -167,6 +170,9 @@ class NewTaskController extends Controller
             case 'Facebook':
                 $social_id = 2;
                 break;
+            case 'Youtube':
+                $social_id = 4;
+                break;
             default:
                 return false;
                 break;
@@ -200,9 +206,17 @@ class NewTaskController extends Controller
             $points = $request['sng_points'];
             $amount = $request['sng_amount'];
             $task->sng_points = $points;
-            $task->sng_amount = $amount;
+            $task->sng_amounts = $amount;
         }
+        $task->priority = $request['priority'];
 
+        $comments = [];
+
+        if ($service_id == 4) {
+            foreach ($request->input('comment_text') as $comment) {
+                $comments[] = $comment;
+            }
+        }
 
         $client = new Client();
         $url = 'https://api-public.bosslike.ru/v1/';
@@ -219,10 +233,12 @@ class NewTaskController extends Controller
                     'service_url' => $task->link,
                     'price' => $points,
                     'count' => $amount,
+                    'comments' => $comments
                 ],
                 'http_errors' => false
             ]);
         $result = json_decode($data->getBody()->getContents());
+//        dd($result);
 
         $task->bosslike_id = $result->data->task->id;
         $task->save();
@@ -263,6 +279,9 @@ class NewTaskController extends Controller
             case 'Telegram':
                 $result = $this->validateChannel($data);
                 break;
+            case 'Youtube':
+                $result = $this->validateYoutube($data, $service->name, $socialUsers);
+                break;
             default:
                 break;
         }
@@ -273,8 +292,120 @@ class NewTaskController extends Controller
     /**
      * @param $data
      * @param $service
+     * @param $token
      * @return array
+     * @throws \GuzzleHttp\Exception\GuzzleException
      */
+    public function validateYoutube($data, $service, $token)
+    {
+        $true = false;
+        $type = 'video';
+        $arr = explode('https://www.youtube.com/', $data['link']);
+        if (count($arr) < 2) {
+            return ['status' => false, 'message' => 'Неверная ссылка или не удалось получить данные из социальной сети или ссылка доступна только вам.'];
+        }
+        switch ($service) {
+            case 'Subscribe':
+                $arr = explode('/channel/', $data['link']);
+                if (count($arr) > 1) {
+                    $client = new Client();
+                    $url = 'https://www.googleapis.com/youtube/v3/channels';
+                    $channel_admin = $client->request('GET', $url,
+                        [
+                            'headers' => [
+                                'Authorization' => 'Bearer ' . $token->access_token,
+                                'Content-Type' => 'application/json'
+                            ],
+                            'query' => [
+                                'part' => 'snippet',
+                                'id' => $arr[1],
+                            ],
+                            'http_errors' => false
+                        ]);
+                    $result = json_decode($channel_admin->getBody()->getContents());
+                    if (isset($result->error)) {
+                        if ($result->error->code == 401) {
+                            return ['status' => false, 'message' => 'Cрок привязки истек. Попробуйте перепривязать ваш аккаунт в настройках.'];
+                        }
+                    }
+                    foreach ($result->items as $item) {
+                        $img_url = $item->snippet->thumbnails->default->url;
+                    }
+                    $true = true;
+                    $type = 'channel';
+                }
+                break;
+            case 'Like':
+            case 'Comment':
+                $arr = explode('/watch?v=', $data['link']);
+                if (count($arr) > 1) {
+                    $client = new Client();
+                    $url = 'https://www.googleapis.com/youtube/v3/videos';
+                    $channel_admin = $client->request('GET', $url,
+                        [
+                            'headers' => [
+                                'Authorization' => 'Bearer ' . $token->access_token,
+                                'Content-Type' => 'application/json'
+                            ],
+                            'query' => [
+                                'part' => 'snippet',
+                                'id' => $arr[1],
+                            ],
+                            'http_errors' => false
+                        ]);
+                    $result = json_decode($channel_admin->getBody()->getContents());
+                    if (isset($result->error)) {
+                        if ($result->error->code == 401) {
+                            return ['status' => false, 'message' => 'Cрок привязки истек. Попробуйте перепривязать ваш аккаунт в настройках.'];
+                        }
+                    }
+                    foreach ($result->items as $item) {
+                        $img_url = $item->snippet->thumbnails->default->url;
+                    }
+                    $true = true;
+
+                }
+                break;
+            case 'Watch':
+                $arr = explode('/watch?v=', $data['link']);
+                if (count($arr) > 1) {
+                    $client = new Client();
+                    $url = 'https://www.googleapis.com/youtube/v3/videos';
+                    $channel_admin = $client->request('GET', $url,
+                        [
+                            'headers' => [
+                                'Authorization' => 'Bearer ' . $token->access_token,
+                                'Content-Type' => 'application/json'
+                            ],
+                            'query' => [
+                                'part' => 'snippet',
+                                'id' => $arr[1],
+                            ],
+                            'http_errors' => false
+                        ]);
+                    $result = json_decode($channel_admin->getBody()->getContents());
+                    if (isset($result->error)) {
+                        if ($result->error->code == 401) {
+                            return ['status' => false, 'message' => 'Cрок привязки истек. Попробуйте перепривязать ваш аккаунт в настройках.'];
+                        }
+                    }
+                    foreach ($result->items as $item) {
+                        $img_url = $item->snippet->thumbnails->default->url;
+                    }
+                    $true = true;
+                }
+                break;
+            default:
+                break;
+        }
+        if (!$true) {
+            return ['status' => false, 'message' => 'Неверная ссылка или не удалось получить данные из социальной сети или ссылка доступна только вам.'];
+        } else {
+            return ['status' => true, 'picture' => $img_url, 'type' => $type, 'postId' => $arr[1]];
+        }
+    }
+
+
     public function validateInstagram($data, $service)
     {
         $instagram = new \InstagramScraper\Instagram();
@@ -301,7 +432,8 @@ class NewTaskController extends Controller
 
         if ($media['id'] > 0) {
             (isset($media['imageThumbnailUrl'])) ? $pic = $media['imageThumbnailUrl'] : $pic = $media['profilePicUrl'];
-            return ['status' => true, 'picture' => $pic, 'type' => $type, 'postId' => $media['id']];
+            (isset($media['username'])) ? $postName = $media['username'] : $postName = '';
+            return ['status' => true, 'picture' => $pic, 'type' => $type, 'postId' => $media['id'], 'postName' => $postName];
         } else {
             return ['status' => false, 'message' => 'Неверная ссылка или не удалось получить данные из социальной сети или ссылка доступна только Вам.'];
         }
@@ -407,12 +539,13 @@ class NewTaskController extends Controller
         if ($result->ok == true) {
             $return = false;
             foreach ($result->result as $admin) {
-                if ($admin->status == 'administrator' && $admin->user->username == env('TG_NAME')) {
+//                dd($admin->status.$admin->user->username);
+                if ($admin->status == 'administrator' && $admin->user->username == 'PicStarBot') {
                     $return = true;
                 }
             }
 
-            if ($return) {
+            if (!$return) {
                 return ['status' => false, 'message' => 'В указанном канале не добавлен наш бот или не даны администраторские права.'];
             }
 
@@ -424,8 +557,11 @@ class NewTaskController extends Controller
                     'http_errors' => false
                 ]);
             $result = json_decode($channel->getBody()->getContents());
+
+            $chat_id = $result->result->id;
+            $username = $result->result->title;
             if (!isset($result->result->photo)) {
-                return ['status' => true, 'picture' => ''];
+                return ['postName' => $username, 'type' => 'channel', 'postId' => $chat_id, 'status' => true, 'picture' => ''];
             }
             $channel_photo = $client->request('POST', $url . env('TG_TOKEN') . '/getFile',
                 [
@@ -436,7 +572,7 @@ class NewTaskController extends Controller
                 ]);
             $result = json_decode($channel_photo->getBody()->getContents());
             $img_url = 'https://api.telegram.org/file/bot' . env('TG_TOKEN') . '/' . $result->result->file_path;
-            return ['status' => true, 'picture' => $img_url];
+            return ['postName' => $username, 'type' => 'channel', 'postId' => $chat_id, 'status' => true, 'picture' => $img_url];
         } else {
             return ['status' => false, 'message' => 'В указанном канале не добавлен наш бот или не даны администраторские права.'];
         }

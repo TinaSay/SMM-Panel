@@ -40,7 +40,7 @@ return [
         ],
     ],
     'oauthConfig' => [
-        'callback' => 'http://demo.smm-pro.uz/oauth/login',
+        'callback' => 'https://picstar.uz/oauth/login',
         'keys' => [
             'id' => 12,
             'secret' => 'kMIposKFTw9BdWUlGhrRMOc2fPhB5VzKx5wQOSO5',
@@ -64,5 +64,10 @@ return [
         'client_id' => env('INSTAGRAM_KEY'),
         'client_secret' => env('INSTAGRAM_SECRET'),
         'redirect' => env('INSTAGRAM_REDIRECT_URI')
+    ],
+'youtube' => [
+        'client_id' => env('YOUTUBE_KEY'),
+        'client_secret' => env('YOUTUBE_SECRET'),
+        'redirect' => env('YOUTUBE_REDIRECT_URI')
     ],
 ];

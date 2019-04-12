@@ -44,6 +44,10 @@ use Illuminate\Database\Eloquent\Model;
  */
 class Service extends Model
 {
+    protected $fillable = [
+        'id', 'category_id', 'name', 'description', 'quantity', 'service_api', 'service_order_api', 'type', 'price', 'reseller_price', 'active', 'created_at', 'updated_at', 'weight'
+    ];
+
     /**
      * Default service type. Saved as 1.
      */
@@ -65,6 +69,11 @@ class Service extends Model
     public function orders()
     {
         return $this->hasMany(Order::class);
+    }
+
+    public function quantity()
+    {
+        return $this->hasMany(ServiceQuantity::class);
     }
 
     /**

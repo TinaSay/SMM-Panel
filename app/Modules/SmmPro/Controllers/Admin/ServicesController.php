@@ -7,6 +7,7 @@ use App\Modules\SmmPro\Models\Category;
 use App\Modules\SmmPro\Models\Order;
 use App\Modules\SmmPro\Models\Service;
 use App\Http\Controllers\Controller;
+use Cookie;
 
 /**
  * Class ServicesController
@@ -20,7 +21,7 @@ class ServicesController extends Controller
      * @var array
      */
     protected $defaultSorting = [
-        'id', 'asc'
+        'weight', 'asc'
     ];
 
     /**
@@ -43,15 +44,56 @@ class ServicesController extends Controller
      */
     public function create()
     {
+        $root = Cookie::get('rootCategory');
+        $rootCategory = null;
+        $category = Cookie::get('category');
+        $childCategory = null;
+        $categories = collect();
+
+        if ($root) {
+            $rootCategory = Category::find($root);
+            $categories = $rootCategory->descendants;
+        }
+
+        if ($category) {
+            $childCategory = Category::find($category);
+        }
+
+        $rootCategories = Category::whereIsRoot()->defaultOrder()->get();
+
         return view('smmpro::services.create', [
-            'parentCategories' => Category::defaultOrder()->whereNull('parent_id')->get()
+            //            'parentCategories' => Category::with('children')->defaultOrder()->whereNull('parent_id')->get()
+            'rootCategories' => $rootCategories,
+            'rootCategory' => $rootCategory,
+            'childCategory' => $childCategory,
+            'categories' => $categories
         ]);
     }
 
     public function duplicate($id)
     {
+        $service = Service::find($id);
+        $ancestors = Category::ancestorsOf($service->category_id);
+        $rootCategory = null;
+        $categories = collect();
+
+        foreach ($ancestors as $node) {
+            if (is_null($node->parent_id)) {
+                $rootCategory = $node;
+
+                break;
+            }
+        }
+
+        if ($rootCategory) {
+            $categories = $rootCategory->descendants;
+        }
+
         return view('smmpro::services.duplicate', [
-            'service' => Service::findOrFail($id),
+            'service' => $service,
+            'rootCategory' => $rootCategory,
+            'quantity' => $service->quantity()->get(),
+            'categories' => $categories,
             'parentCategories' => Category::defaultOrder()->whereNull('parent_id')->get()
         ]);
     }
@@ -68,9 +110,11 @@ class ServicesController extends Controller
         if (filled($request->input('subcategory'))) {
             $service->category_id = $request->input('subcategory');
         }
+        if (filled($request->input('category_id'))) {
+            $service->category_id = $request->input('category_id');
+        }
         $service->name = $request->input('name');
-        $service->description = $request->input('description');
-        $service->quantity = $request->input('quantity');
+        $service->description = str_replace("\r\n", '<br>', $request->input('description'));
         $service->service_api = $request->input('service_api');
         $service->service_order_api = $request->input('service_order_api');
 
@@ -80,10 +124,17 @@ class ServicesController extends Controller
             $service->type = $request->input('type');
         }
 
-        $service->price = $request->input('price');
-        $service->reseller_price = $request->input('reseller_price');
         $service->active = $request->input('active');
         $service->save();
+
+        $service->quantity()->delete();
+
+        foreach ($request->quantities as $key => $value) {
+            $service->quantity()->create([
+                'quantity' => $value,
+                'price' => $request->prices[$key]
+            ]);
+        }
 
         return redirect()->route('services.index')->with('success', 'Сервис добавлен!');
     }
@@ -94,8 +145,28 @@ class ServicesController extends Controller
      */
     public function edit($id)
     {
+        $service = Service::find($id);
+        $ancestors = Category::ancestorsOf($service->category_id);
+        $rootCategory = null;
+        $categories = collect();
+
+        foreach ($ancestors as $node) {
+            if (is_null($node->parent_id)) {
+                $rootCategory = $node;
+
+                break;
+            }
+        }
+
+        if ($rootCategory) {
+            $categories = $rootCategory->descendants;
+        }
+
         return view('smmpro::services.edit', [
-            'service' => Service::findOrFail($id),
+            'service' => $service,
+            'quantity' => $service->quantity()->get(),
+            'rootCategory' => $rootCategory,
+            'categories' => $categories,
             'parentCategories' => Category::defaultOrder()->whereNull('parent_id')->get()
         ]);
     }
@@ -113,8 +184,7 @@ class ServicesController extends Controller
             $service->category_id = $request->input('category_id');
         }
         $service->name = $request->input('name');
-        $service->description = $request->input('description');
-        $service->quantity = $request->input('quantity');
+        $service->description = str_replace("\r\n", '<br>', $request->input('description'));
         $service->service_api = $request->input('service_api');
         $service->service_order_api = $request->input('service_order_api');
 
@@ -122,11 +192,19 @@ class ServicesController extends Controller
             $service->type = $request->input('type');
         }
 
-        $service->price = $request->input('price');
         $service->reseller_price = $request->input('reseller_price');
         $service->active = $request->input('active');
 
         $service->save();
+
+        $service->quantity()->delete();
+
+        foreach ($request->quantities as $key => $value) {
+            $service->quantity()->create([
+                'quantity' => $value,
+                'price' => $request->prices[$key]
+            ]);
+        }
 
         return redirect()->route('services.index')->with('success', 'Сервис обновлен!');
     }
@@ -147,14 +225,17 @@ class ServicesController extends Controller
         return redirect()->route('services.index')->with('success', 'Сервис удален');
     }
 
+    public function reorder()
+    {
+        return view('smmpro::services.reorder');
+    }
+
     public function ajaxGetServices(\Illuminate\Http\Request $request)
     {
         $page = $request->page ?: 1;
         $sorting = $this->parseSortingArgument($request);
 
         $query = Service::whereNotNull('id');
-
-        $total = $query->count('id');
 
         if ($request->has('search') && $request->search) {
             $query->where('name', 'like', "%$request->search%");
@@ -172,10 +253,15 @@ class ServicesController extends Controller
             }
         }
 
-        $result = $query->offset(($page - 1) * $request->limit)
-            ->limit($request->limit)
-            ->sort($sorting)
-            ->get();
+        $total = $query->count('id');
+
+        if ($request->limit) {
+            $query->offset(($page - 1) * $request->limit);
+            $query->limit($request->limit);
+        }
+
+        $result = $query->sort($sorting)
+                        ->get();
 
         $data = collect();
 
@@ -185,21 +271,28 @@ class ServicesController extends Controller
 
                 $category = Category::find($row->category_id)->name;
 
+                $quantity = $row->quantity()->get()->first()
+                    ? ($row->quantity()->get()->count() > 1 ? $row->quantity()->get()->first()->quantity.' - '.$row->quantity()->get()->last()->quantity : $row->quantity()->get()->first()->quantity)
+                    : null;
+
+                $price = $row->quantity()->get()->first()
+                    ? ($row->quantity()->get()->count() > 1 ? number_format($row->quantity()->get()->first()->price, 0, ',', ' ').' - '.number_format($row->quantity()->get()->last()->price, 0, ',', ' ') : number_format($row->quantity()->get()->first()->price, 0, ',', ' '))
+                    : number_format($row->price, 0, ',', ' ');
+
                 $render['id'] = $row->id;
-                $render['name'] = $row->name;
-                $render['description'] = $row->description;
+                $render['name'] = '<div>'.$row->name.'</div><small class="text-muted">'.$row->description.'</small>';
                 $render['category_id'] = $category;
-                $render['quantity'] = $row->quantity;
-                $render['price'] = number_format($row->price, 0, ',', ' ') . ' сум';
+                $render['quantity'] = $quantity;
+                $render['price'] = $price . ' сум';
                 $render['created_at'] = $row->created_at->format('Y-m-d H:i:s');
                 $render['actions'] = '
-                <a href="' . route('service.duplicate', $row->id) . '" class="btn btn-sm btn-outline-secondary pr-3 pl-3">
+                <a href="' . route('service.duplicate', $row->id) . '" class="btn btn-xs btn-outline-secondary pr-2 pl-2">
                     <i class="far fa-clone"></i>
                 </a>
-                <a href="' . route('service.edit', $row->id) . '" class="btn btn-sm btn-outline-primary pr-3 pl-3">
+                <a href="' . route('service.edit', $row->id) . '" class="btn btn-xs btn-outline-primary pr-2 pl-2">
                     <i class="fa fa-edit"></i>
                 </a>
-                <a href="' . route('service.destroy', $row->id) . '" class="btn btn-sm btn-outline-danger">
+                <a href="' . route('service.destroy', $row->id) . '" class="btn btn-xs btn-outline-danger pr-2 pl-2">
                     <i class="fa fa-trash"></i>
                 </a>';
 
@@ -208,10 +301,20 @@ class ServicesController extends Controller
         }
 
         return [
+            'filter' => $request->filter,
             'total' => $total,
             'totalFiltered' => $result->count(),
             'rows' => $data
         ];
+    }
+
+    public function ajaxSaveSorting(\Illuminate\Http\Request $request)
+    {
+        foreach ($request->items as $key => $item) {
+            Service::where('id', $item['id'])->update([
+                'weight' => $key
+            ]);
+        }
     }
 
     public function parseSortingArgument(\Illuminate\Http\Request $request): array
@@ -223,4 +326,3 @@ class ServicesController extends Controller
         return $this->defaultSorting;
     }
 }
-

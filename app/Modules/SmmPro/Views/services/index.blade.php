@@ -1,55 +1,40 @@
-@extends('layouts.app')
+@extends('layouts.smm-layout')
 @section('title','Сервисы')
 @section('content')
-    <a href="{{ route('service.create') }}" class="btn btn-primary btn-lilac">Добавить сервис</a>
-    @if($services->isEmpty())
-        <h3>Нет сервисов</h3>
-    @else
-        @if(session()->has('success'))
-            <input type="hidden" id="success-session" value="{{ session('success') }}">
-        @elseif((session()->has('fail')))
-            <input type="hidden" id="fail-session" value="{{ session('fail') }}">
-        @endif
-
-        <div class="clearfix">
-            <table-vue table-id="services-list"
-                       class="services-list"
-                       url="/ajax/get-services"
-                       placeholder="Поиск"
-                       v-bind:columns="[
-                            {name: 'ID', slug: 'id', width: 70},
-                            {name: 'Название', slug: 'name', width: 450},
-                            {name: 'Описание', slug: 'description', sortable: false, width: 300},
-                            {name: 'Категория', slug: 'category_id'},
-                            {name: 'Количество', slug: 'quantity'},
-                            {name: 'Цена', slug: 'price'},
-                            {name: 'Дата', slug: 'created_at'},
-                            {slug: 'actions', className: 'actions text-right', sortable: false, width: 150}
-                       ]"></table-vue>
+    <div class="container-fluid">
+        <div class="row justify-content-center">
+            <div class="col-12">
+                <a href="{{ route('service.create') }}" class="btn btn-primary btn-lilac">Добавить сервис</a>
+                <a href="{{ route('services.reorder') }}" class="btn btn-primary btn-lilac">Сортировка</a>
+            </div>
         </div>
-    @endif
-    <div class="mt-3">
-        <a href="{{ route('catalog') }}" class="btn btn-info btn-lilac">На главную</a>
+        <div class="row justify-content-center">
+            <div class="col-12">
+                @if($services->isEmpty())
+                    <h3>Нет сервисов</h3>
+                @else
+                    @if(session()->has('success'))
+                        <input type="hidden" id="success-session" value="{{ session('success') }}">
+                    @elseif((session()->has('fail')))
+                        <input type="hidden" id="fail-session" value="{{ session('fail') }}">
+                    @endif
+
+                    <div class="clearfix">
+                        <vue-table-extended table-id="services-list" class="services-list" url="/ajax/get-services" :columns="[
+                    {name: 'ID', slug: 'id', width: 70},
+                    {name: 'Название', slug: 'name'},
+                    {name: 'Категория', slug: 'category_id', width: 240},
+                    {name: 'Количество', slug: 'quantity', width: 130},
+                    {name: 'Цена', slug: 'price', width: 170},
+                    {name: 'Дата', slug: 'created_at', width: 120},
+                    {slug: 'actions', className: 'actions text-right', sortable: false, width: 150}
+                ]"></vue-table-extended>
+                    </div>
+                @endif
+                <div class="mt-3">
+                    <a href="{{ route('catalog') }}" class="btn btn-info btn-lilac">На главную</a>
+                </div>
+            </div>
+        </div>
     </div>
 @endsection
-@push('scripts')
-    <script>
-        $(document).ready(function () {
-
-            /*$('.table-services').DataTable({
-                "language": {
-                    "search": 'Поиск',
-                    "lengthMenu": "Показать _MENU_ записей",
-                    "info": "Страница _PAGE_ из _PAGES_",
-                    "infoFiltered": " - найдено из _MAX_ записей",
-                    paginate: {
-                        first: '«',
-                        previous: '‹',
-                        next: '›',
-                        last: '»'
-                    },
-                }
-            });*/
-        });
-    </script>
-@endpush

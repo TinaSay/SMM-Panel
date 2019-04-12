@@ -42,7 +42,7 @@
                     <input id="link" type="text" name="link" value="{{ old('link') }}"
                            class="form-control{{ $errors->has('link') ? ' is-invalid' : '' }}"
                            placeholder="http://" onfocus="this.placeholder = ''"
-                           onblur="this.placeholder = 'http://'">
+                           onblur="this.placeholder = 'https://'">
 
                     @if ($errors->has('link'))
                         <span class="invalid-feedback" role="alert">
